@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE module PUBLIC
+    "-//Puppy Crawl//DTD Check Configuration 1.3//EN"
+    "http://www.puppycrawl.com/dtds/configuration_1_3.dtd"><!--
+This configuration file was written by the eclipse-cs plugin configuration editor
+-->
+<module name="Checker">
+    <property name="charset" value="UTF-8" />
+    <property name="severity" value="warning" />
+
+    <!-- Checks for Size Violations.  -->
+    <!-- 检查文件的长度（行） default max=2500 -->
+    <module name="FileLength">
+        <property name="max" value="2500" />
+    </module>
+
+    <module name="TreeWalker">
+
+        <!-- 检查所有的interface和class,允许未知的标签-->
+        <module name="JavadocType">
+            <property name="allowUnknownTags" value="true" />
+            <message key="javadoc.missing" value="类注释：缺少Javadoc注释。" />
+        </module>
+
+        <!-- 检查所有方法的javadoc，可以不声明RuntimeException -->
+        <module name="JavadocMethod">
+            <property name="allowUndeclaredRTE" value="true" />
+            <!--允许get set 方法没有注释-->
+            <property name="allowMissingPropertyJavadoc" value="true" />
+            <message key="javadoc.missing" value="方法注释：缺少Javadoc注释。" />
+        </module>
+
+        <!-- 检查类变量的注释
+           scope: 检查变量的范围，例如：public只能检查public修饰的变量，private可以检查所有的变量 -->
+        <module name="JavadocVariable">
+            <property name="scope" value="public" />
+        </module>
+
+        <!--注解设置-->
+        <module name="AnnotationUseStyle">
+            <!--注解的参数样式 忽略-->
+            <property name="elementStyle" value="ignore" />
+            <!--是否在数组元素后尾随逗号 忽略 -->
+            <property name="trailingArrayComma" value="ignore" />
+            <!--检查是否保留结束括号 忽略 -->
+            <property name="closingParens" value="ignore" />
+        </module>
+
+        <!-- 命名规范 -->
+        <!-- 类的命名,匹配规则默认:(^[A-Z][a-zA-Z0-9]*$),必须以大写字母开始 -->
+        <module name="TypeName">
+            <property name="tokens" value="CLASS_DEF" />
+        </module>
+
+        <!-- 接口命名,匹配规则:(^I[A-Z][a-zA-Z0-9]*$),必须以大写I开始 -->
+        <!--<module name="TypeName">-->
+        <!--<property name="format" value="^I[A-Z][a-zA-Z0-9]*$"/>-->
+        <!--<property name="tokens" value="INTERFACE_DEF"/>-->
+        <!--</module>-->
+
+        <!-- 变量的检查 匹配规则默认^[a-z][a-zA-Z0-9]*$ 范围： 非static型变量 命名为小写-->
+        <module name="MemberName" />
+        <!-- 方法名的检查 匹配规则默认^[a-z][a-zA-Z0-9]*$ 范围：方法名 命名为小写-->
+        <module name="MethodName" />
+        <!-- 方法的参数名 匹配规则默认^[a-z][a-zA-Z0-9]*$ 范围：方法中的参数名 命名为小写-->
+        <module name="ParameterName " />
+        <!-- 常量名的检查 匹配规则默认^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$ 范围：常量(static , final 字段) 命名为大写-->
+        <module name="ConstantName" />
+
+
+        <!-- 包名的检测,必须以com.gouuse.工程名命名,且必须全小写,$\{projectname\} -->
+        <!--<module name="PackageName">-->
+        <!--<property name="format" value="com\.gouuse\.[a-z]+(\.[a-z][a-z0-9]+)*$"/>-->
+        <!--</module>-->
+
+
+        <!-- 限制导入多余的包,例如java.lang.String -->
+        <module name="RedundantImport" />
+
+        <!-- 限制导入未使用过的类 -->
+        <module name="UnusedImports" />
+
+        <!--代码规范-->
+        <!-- 每行不超过150个字,默认80-->
+        <module name="LineLength">
+            <property name="max" value="200" />
+        </module>
+
+        <!-- 即制方法和构造函数行数不超过多少行,默认160行(不包括空行) -->
+        <module name="MethodLength">
+            <property name="countEmpty" value="false" />
+            <property name="tokens" value="METHOD_DEF,CTOR_DEF" />
+            <property name="max" value="160" />
+        </module>
+
+        <!-- 不能出现大块空白区域 -->
+        <module name="GenericWhitespace" />
+
+        <!-- 检查是否有未初始化的循环变量 -->
+        <module name="EmptyForInitializerPad" />
+
+        <!-- 不许出现空语句 int a = 0; //正常 ; // 这里就是一个空的语句 -->
+        <module name="EmptyStatement" />
+
+        <!-- 不能容忍魔法数,范围 double，int 忽略0,1 -->
+        <module name="MagicNumber">
+            <property name="tokens" value="NUM_DOUBLE, NUM_FLOAT" />
+            <property name="ignoreNumbers" value="0,1" />
+            <property name="ignoreAnnotation" value="true" />
+        </module>
+
+        <!-- String的比较不能用!= 和 == -->
+        <module name="StringLiteralEquality" />
+
+        <!-- 限制for循环最多嵌套3层 -->
+        <module name="NestedForDepth">
+            <property name="max" value="3" />
+        </module>
+
+        <!-- if最多嵌套5层 -->
+        <module name="NestedIfDepth">
+            <property name="max" value="5" />
+        </module>
+
+        <!-- 确保声明被初始化,例：对象是null,数字和字符是0-->
+        <module name="ExplicitInitialization" />
+
+        <!-- 同一行不能有多个声明 -->
+        <module name="MultipleVariableDeclarations" />
+
+        <!-- TODO的检查,表示不要出现todo未办事项目-->
+        <module name="TodoComment">
+            <property name="format" value="TODO\W+" />
+        </module>
+
+        <!-- 检查未被注释的main方法,排除以Main结尾命名的类 -->
+        <module name="UncommentedMain">
+            <property name="excludedClasses" value=".*Main$" />
+        </module>
+
+        <!-- 检查左侧大括号 左侧大括号必须放在前一行代码的行尾 -->
+        <module name="LeftCurly">
+            <property name="severity" value="warning" />
+            <message key="line.previous" value="左侧大括号必须放在前一行代码的行尾，不计入到80个字符内" />
+        </module>
+
+        <!-- 对关键字else、try和catch的右侧大括号放置位置进行检查 -->
+        <module name="RightCurly">
+            <property name="severity" value="warning" />
+            <!--与下一语句放在同一行 -->
+            <property name="option" value="same" />
+        </module>
+
+        <!-- 禁止使用System.out.println -->
+        <module name="Regexp">
+            <property name="format" value="System\.out\.println" />
+            <property name="illegalPattern" value="true" />
+        </module>
+
+
+        <!--避免 null.equals("sss")情况-->
+        <module name="EqualsAvoidNull" />
+
+        <!-- 异常抛出数量定义 -->
+        <module name="ThrowsCount">
+            <metadata name="net.sf.eclipsecs.core.comment" value="最大异常抛出个数" />
+            <property name="max" value="3" />
+        </module>
+
+        <!--检查switch中case后是否加入了跳出语句，例如：return、break、throw、continue -->
+        <module name="FallThrough" />
+
+        <!-- 参数个数定义 最多20个-->
+        <module name="ParameterNumber">
+            <property name="max" value="20" />
+        </module>
+
+        <!-- return个数 10个-->
+        <module name="ReturnCount">
+            <property name="max" value="10" />
+        </module>
+
+        <!--try catch 异常处理数量 3-->
+        <module name="NestedTryDepth ">
+            <property name="max" value="3" />
+        </module>
+        <!-- 检查并确保所有的常量中的L都是大写的。因为小写的字母l跟数字1太象了 -->
+        <module name="UpperEll" />
+        <!-- 检查数组类型的定义是String[] args，而不是String args[] -->
+        <module name="ArrayTypeStyle" />
+
+    </module>
+</module>

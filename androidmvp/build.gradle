@@ -1,0 +1,157 @@
+apply plugin: rootProject.ext.plugins.application
+
+//checkStyle检查文件设置
+task checkstylea(type: Checkstyle) {
+    source 'src'
+    include '**/*.java'
+    exclude '**/gen/**'
+    exclude '**/R.java'
+    exclude '**/BuildConfig.java'
+    exclude "**/entity/**"
+    configFile new File(rootDir, "checkstyle.xml")
+    // empty classpath
+    classpath = files()
+}
+
+//定义Date变量
+static def releaseTime() {
+    return new Date().format("yyyy-MM-dd", TimeZone.getTimeZone("UTC"))
+}
+
+File signPropertiesFile = rootProject.file('sign/keystore.properties')
+
+android {
+    compileSdkVersion rootProject.ext.android.compileSdkVersion
+
+    defaultConfig {
+        applicationId rootProject.ext.android.applicationId
+        minSdkVersion rootProject.ext.android.minSdkVersion
+        targetSdkVersion rootProject.ext.android.targetSdkVersion
+        versionCode rootProject.ext.android.versionCode
+        versionName "${APP_VERSION}"
+        buildConfigField("String", "SERVICE_BASE_URL", "\"${SERVICE_BASE_URL}\"")
+        buildConfigField 'boolean', 'IS_DEVELOP_VERSIONS', 'false'
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+
+    //签名配置
+    if (signPropertiesFile.exists()) {
+        Properties properties = new Properties()
+        properties.load(new FileInputStream(signPropertiesFile))
+        signingConfigs {
+            release {
+                storeFile rootProject.file(properties['keystore'])
+                storePassword properties['storePassword']
+                keyAlias properties['keyAlias']
+                keyPassword properties['keyPassword']
+            }
+        }
+    }
+
+    //编译配置
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+
+            if (signPropertiesFile.exists()) {
+                signingConfig signingConfigs.release
+            }
+
+            applicationVariants.all { variant ->
+                variant.outputs.all { output ->
+                    def outputFile = output.outputFile
+                    if (outputFile != null && outputFile.name.endsWith('.apk')) {
+                        //项目名_版本号_渠道名_包类型_打包时间.apk
+                        output.outputFileName = rootProject.getName() +
+                                "_v${defaultConfig.versionName}_${variant.productFlavors[0].name}" +
+                                "_${variant.buildType.name}_${releaseTime()}.apk"
+                    }
+                }
+            }
+
+        }
+
+        debug {
+
+            minifyEnabled false
+        }
+    }
+
+    //SO文件配置
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']//将so文件目录指向libs目录
+            res.srcDirs = ['src/main/res']
+        }
+    }
+
+    //多渠道配置
+    flavorDimensions "default"
+    productFlavors {
+        //开发环境
+        envioDev {
+            flavor ->
+                /*flavor.manifestPlaceholders = [ALIPUSH_APPKEY     : 24596495,
+                                               ALIPUSH_APP_SECRET : '22e60d6b2255d8b08d1ecb6c84355ca5',
+                                               GAODE_MAPKEY_VALUE : '20683bfc9e55529000d067ee8b7f0959',
+                                               UMENG_APPKEY_VALUE : '59c4bd7d65b6d64340000239',
+                                               IM_APPKEY_VALUE    : '097ff6186209879b05df26d3e1a7e1a5',
+                                               UMENG_CHANNEL_VALUE: name]*/
+                buildConfigField 'boolean', 'IS_DEVELOP_VERSIONS', 'true'
+                dimension "default"
+                buildConfigField("String", "SERVICE_BASE_URL", "\"http://www.taobao.com\"")
+        }
+        //测试环境
+        envioTest {
+            flavor ->
+                /*flavor.manifestPlaceholders = [ALIPUSH_APPKEY     : 24799600,
+                                               ALIPUSH_APP_SECRET : 'bd8b95675069769721fea583f689d96d',
+                                               GAODE_MAPKEY_VALUE : '20683bfc9e55529000d067ee8b7f0959',
+                                               UMENG_APPKEY_VALUE : '59c4bd7d65b6d64340000239',
+                                               IM_APPKEY_VALUE    : '097ff6186209879b05df26d3e1a7e1a5',
+                                               UMENG_CHANNEL_VALUE: name]*/
+                buildConfigField("String", "SERVICE_BASE_URL", "\"http://www.xiaomi.com\"")
+                dimension "default"
+                buildConfigField 'boolean', 'IS_DEVELOP_VERSIONS', 'true'
+        }
+        //正式环境
+        envioRelease {
+            flavor ->
+                /*flavor.manifestPlaceholders = [ALIPUSH_APPKEY     : 24799213,
+                                               ALIPUSH_APP_SECRET : '528ba8202d695b4d5e8407f18034f990',
+                                               GAODE_MAPKEY_VALUE : '20683bfc9e55529000d067ee8b7f0959',
+                                               UMENG_APPKEY_VALUE : '59c4bd7d65b6d64340000239',
+                                               IM_APPKEY_VALUE    : '097ff6186209879b05df26d3e1a7e1a5',
+                                               UMENG_CHANNEL_VALUE: name]*/
+                buildConfigField("String", "SERVICE_BASE_URL", "\"http://www.baidu.com\"")
+                dimension "default"
+                buildConfigField 'boolean', 'IS_DEVELOP_VERSIONS', 'false'
+        }
+    }
+
+    //指定Java编译版本
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.1'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+
+
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation dependenceExtra.appCompat
+    implementation dependenceExtra.v4
+    implementation dependenceExtra.cardView
+    implementation dependenceExtra.recyclerView
+    implementation dependenceExtra.design
+    implementation dependenceExtra.constraintLayout
+
+
+    implementation dependenceExtra.retrofit
+}
