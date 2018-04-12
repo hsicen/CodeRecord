@@ -101,7 +101,7 @@ android {
                                                UMENG_CHANNEL_VALUE: name]*/
                 buildConfigField 'boolean', 'IS_DEVELOP_VERSIONS', 'true'
                 dimension "default"
-                buildConfigField("String", "SERVICE_BASE_URL", "\"http://www.taobao.com\"")
+                buildConfigField("String", "SERVICE_BASE_URL", "\"http://api.douban.com/v2\"")
         }
         //测试环境
         envioTest {
@@ -112,7 +112,7 @@ android {
                                                UMENG_APPKEY_VALUE : '59c4bd7d65b6d64340000239',
                                                IM_APPKEY_VALUE    : '097ff6186209879b05df26d3e1a7e1a5',
                                                UMENG_CHANNEL_VALUE: name]*/
-                buildConfigField("String", "SERVICE_BASE_URL", "\"http://www.xiaomi.com\"")
+                buildConfigField("String", "SERVICE_BASE_URL", "\"http://api.douban.com/v2\"")
                 dimension "default"
                 buildConfigField 'boolean', 'IS_DEVELOP_VERSIONS', 'true'
         }
@@ -125,7 +125,7 @@ android {
                                                UMENG_APPKEY_VALUE : '59c4bd7d65b6d64340000239',
                                                IM_APPKEY_VALUE    : '097ff6186209879b05df26d3e1a7e1a5',
                                                UMENG_CHANNEL_VALUE: name]*/
-                buildConfigField("String", "SERVICE_BASE_URL", "\"http://www.baidu.com\"")
+                buildConfigField("String", "SERVICE_BASE_URL", "\"http://api.douban.com/v2\"")
                 dimension "default"
                 buildConfigField 'boolean', 'IS_DEVELOP_VERSIONS', 'false'
         }
@@ -143,8 +143,10 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
 
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation project(':swipeback')
+    implementation project(':library')
 
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation dependenceExtra.appCompat
     implementation dependenceExtra.v4
     implementation dependenceExtra.cardView
@@ -152,6 +154,19 @@ dependencies {
     implementation dependenceExtra.design
     implementation dependenceExtra.constraintLayout
 
-
     implementation dependenceExtra.retrofit
+    implementation dependenceExtra.converterGson
+    implementation dependenceExtra.converterScalars
+    implementation dependenceExtra.retrofitAdapter
+    implementation dependenceExtra.logInterceptor
+    //网络请求和数据库调试工具
+    implementation 'com.facebook.stetho:stetho:1.5.0'
+    implementation 'com.facebook.stetho:stetho-okhttp3:1.5.0'
+
+    implementation dependenceExtra.rxJava
+    implementation dependenceExtra.rxAndroid
+
+    implementation dependenceExtra.butterknife
+    annotationProcessor dependenceExtra.butterknifeCompiler
+
 }

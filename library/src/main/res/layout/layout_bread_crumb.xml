@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal">
+
+
+    <TextView
+        android:id="@+id/tv_content"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/bread_split_margin"
+        android:layout_marginLeft="@dimen/bread_split_margin"
+        android:layout_marginRight="@dimen/bread_split_margin"
+        android:layout_marginStart="@dimen/bread_split_margin"
+        android:textColor="@color/colorBlue"
+        android:textSize="@dimen/btead_text_size"
+        tools:text="销售部" />
+
+    <TextView
+        android:id="@+id/tv_split"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/split"
+        android:textColor="@color/colorBlue"
+        android:textSize="@dimen/btead_text_size" />
+
+
+</LinearLayout>

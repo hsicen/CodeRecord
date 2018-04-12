@@ -1,1 +1,1 @@
-include ':app', ':androidmvp'
+include ':app', ':androidmvp','swipeback','library'

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--面包屑控件-->
+    <declare-styleable name="BreadcrumbView">
+        <!--最后一个的文字大小和颜色-->
+        <attr name="BreadcrumbViewLastTextSize" format="dimension" />
+        <attr name="BreadcrumbViewLastTextColor" format="color|reference" />
+        <!--文字的大小和颜色-->
+        <attr name="BreadcrumbViewTextSize" format="dimension" />
+        <attr name="BreadcrumbViewTextColor" format="color|reference" />
+        <!--间隔符-->
+        <attr name="BreadcrumbViewSplit" format="string" />
+    </declare-styleable>
+
+
+    <!--自动伸缩的Layout-->
+    <declare-styleable name="ExpandableLayout">
+        <attr name="el_duration" format="integer" />
+        <attr name="el_expanded" format="boolean" />
+        <attr name="el_parallax" format="float" />
+        <attr name="layout_expandable" format="boolean" />
+        <attr name="android:orientation" />
+    </declare-styleable>
+
+
+    <!--可清除的EditText-->
+    <declare-styleable name="ClearableEditText">
+        <attr name="clearIcon" format="reference" />
+        <attr name="clearIconPaddingLeft" format="dimension" />
+    </declare-styleable>
+
+
+    <!--百分比View-->
+    <declare-styleable name="PercentView">
+        <attr name="fanColor" format="color" />
+        <attr name="fanFullColor" format="color" />
+        <attr name="firstCircleColor" format="color" />
+        <attr name="fanStartAngle" format="integer" />
+
+        <attr name="centerCircleColor" format="color" />
+        <attr name="centerCircleRadius" format="dimension" />
+        <attr name="innerCircleRadius" format="dimension" />
+        <attr name="outerCircleRadius" format="dimension" />
+
+        <attr name="topTextColor" format="color" />
+        <attr name="centerTextColor" format="color" />
+        <attr name="bottomTextColor" format="color" />
+
+        <attr name="topTextSize" format="dimension" />
+        <attr name="centerTextSize" format="dimension" />
+        <attr name="bottomTextSize" format="dimension" />
+
+        <attr name="topText" format="string" />
+        <attr name="centerText" format="string" />
+        <attr name="bottomText" format="string" />
+    </declare-styleable>
+
+</resources>
