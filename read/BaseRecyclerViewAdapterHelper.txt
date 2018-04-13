@@ -1,0 +1,196 @@
+mRecyclerView.setHasFixedSize(true);
+当不是瀑布流时，设置这个可以避免重复的增删造成而外的浪费资源,因为他会要求重新布局，重新绘制
+默认动画每个item只执行一次,如果想重复执行动画可以调用一下方法
+mQuickAdapter.isFirstOnly(false);
+
+
+第一步：初始化RecyclerView
+添加控件，查找控件，设置管理器
+
+第二步：初始化adapter
+private void initAdapter() {
+        adapter = new BaseQuickAdapter<Product,BaseViewHolder>(R.layout.layout_product_item,productList) {
+            @Override
+            protected void convert(BaseViewHolder baseViewHolder, Product products) {
+                baseViewHolder.setText(R.id.iv_destination, products.name).setAlpha(R.id.iv_product, 1)
+                        .setText(R.id.iv_startDate, products.start_date)
+                        .setText(R.id.iv_endDate, products.end_date)
+                        .setText(R.id.iv_lastDate, products.days + "天");
+                JCVideoPlayerStandard view = baseViewHolder.getView(R.id.jcVideoPlayer);
+                view.setVisibility(View.GONE);
+
+                Glide.with(RefreshActivity.this)
+                        .load(products.front_cover_photo_url)
+                        .crossFade()
+                        .into((ImageView) baseViewHolder.getView(R.id.iv_product));
+            }
+        };
+        adapter.openLoadAnimation();   //开启item加载的动画
+        rvList.addOnItemTouchListener(new OnItemClickListener() {
+            @Override
+            public void SimpleOnItemClick(BaseQuickAdapter baseQuickAdapter, View view, int i) {
+                Product product = (Product) baseQuickAdapter.getItem(i);   //可以拿到当前位置上的对象
+                Toast.makeText(RefreshActivity.this, "你点击的是第" + i + "个", Toast.LENGTH_SHORT).show();
+            }
+        });
+        rvList.setAdapter(adapter);
+    }
+
+第三部：加载数据
+private ITravelService iTravelService;     //Retrofit的Api接口
+private void initData() {
+        iTravelService = new Retrofit.Builder()
+                .addConverterFactory(GsonConverterFactory.create())
+                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())   //新增加的功能
+                .baseUrl("http://chanyouji.com/")
+                .build()
+                .create(ITravelService.class);
+
+        iTravelService.getProducts(PAGE)    //创建被观察者，并进行网络请求,在子线程中进行
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(Schedulers.io())
+                .doOnNext(products -> {
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(products -> {
+                    productList.addAll(products);
+                    adapter.notifyDataSetChanged();
+                });
+    }
+
+如果添加了多种不同的Item事件
+mRecyclerView.addOnItemTouchListener(new SimpleClickListener() {
+            @Override
+            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
+                Toast.makeText(RecyclerClickItemActivity.this, "" + Integer.toString(position), Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onItemLongClick(BaseQuickAdapter adapter, View view, int position) {
+                Toast.makeText(RecyclerClickItemActivity.this, "" + Integer.toString(position), Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
+                Toast.makeText(RecyclerClickItemActivity.this, "" + Integer.toString(position), Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onItemChildLongClick(BaseQuickAdapter adapter, View view, int position) {
+                Toast.makeText(RecyclerClickItemActivity.this, "" + Integer.toString(position), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
+一、在加载Item时，设置不同的加载动画
+mQuickAdapter.openLoadAnimation( xxxxx);
+参数可以为：空，BaseQuickAdapter.ALPHAIN，BaseQuickAdapter.SCALEIN，BaseQuickAdapter.SLIDEIN_BOTTOM，BaseQuickAdapter.SLIDEIN_LEFT
+						BaseQuickAdapter.SLIDEIN_RIGHT，new CustomAnimation()-->自定义的
+
+
+二、添加或移除头部、尾部
+mQuickAdapter.addHeaderView(getView());
+mQuickAdapter.addFooterView(getView());
+
+mQuickAdapter.removeHeaderView(getView);
+mQuickAdapter.removeFooterView(getView);
+
+mQuickAdapter.removeAllHeaderView();
+mQuickAdapter.removeAllFooterView();
+
+
+三、上拉加载和下拉刷新功能（结合SwipeRefreshLayout实现下拉刷新功能,监听器实现上拉加载功能）
+下拉刷新功能：
+swipeRefreshLayout.setOnRefreshListener(this);
+重写onRefresh方法
+在该方法里清空数据，设置不能上啦加载，再重新加载数据
+数据加载完成时设置刷新完成和能上拉加载     swipeRefreshLayout.setRefreshing(false);
+@Override
+    public void onRefresh() {
+        adapter.setEnableLoadMore(false);
+        PAGE++;
+        productList.clear();
+        initData();
+    }
+
+上拉加载功能：
+mQuickAdapter.setOnLoadMoreListener(this);
+adpter实现onLoadMore方法
+在该方法里设置不能下拉刷新，重新加载数据
+数据加载完成时设置能下拉刷新，刷新完成   adapter.loadMoreComplete();
+public void onLoadMoreRequested() {
+        srlRefresh.setEnabled(false);
+        PAGE++;
+        initData();
+    }
+
+自定义上拉加载的布局
+adapter.setLoadMoreView(new CustomLoadMoreView());
+自定义View继承于LoadMoreView(),重写里面的四个方法
+
+ adapter.loadMoreEnd(boolean);   没有更多数据的提示
+ adapter.loadMoreFail();     数据加载失败的提示
+
+
+
+四、分组加载
+mRecyclerView.setLayoutManager(new StaggeredGridLayoutManager
+			(2, StaggeredGridLayoutManager.VERTICAL));    也可以用其它的布局管理器
+第一步：实体类必须继承SectionEntity
+第二步：获取要展示的数据，添加进自定义的Section集合里面
+头部实体类和这个头部下面的展示的数据要在一起
+第三步：创建分组加载的适配器
+SectionAdapter  adapter = new SectionAdapter(R.layout.section_item,R.layout.section_head,sectionData);
+自定义的SectionAdapter继承于BaseSectionQuickAdapter,
+在convert方法里面加载item数据，在convertHead方法里面加载head数据
+第四步：设置适配器和RecyclerView的监听事件
+
+
+
+五、自定义不同的Item类型(加载不同的布局)
+第一步：实体类必须实现MultItemEntity，在设置数据的时候，需要给每一个数据设置itemType
+
+第二步：创建适配器，传入数据
+在适配器的构造函数里 addItemType绑定type和layout的关系
+在convert方法里判断布局类型，然后绑定数据
+
+第三步：设置布局管理器和设置SpanSize，绑定适配器
+
+
+六、空布局加载
+adapter.setEmptView(getEmptyView());
+这里可以设置正在加载中的布局，没有数据的布局，加载错误的布局
+
+
+七、item的拖动、删除的效果的实现
+开启拖动的监听：
+OnItemDragListener   listener = new OnItemDragListener(){
+	实现onItemDragStart(),onItemDragMoving(),onItemDragEnd();三个方法 }
+
+开启滑动的监听：
+OnItemSwipeListener  listener2 = new OnItemSwipeListener(){
+	实现onItemSwipeStart(),onItemSwipeMoving(),onItemSwiped(),clearView()四个方法  }
+
+adapter需要继承BaseItemDraggableAdapter
+
+添加CallBack方法：
+ItemDragAndSwipeCallback itemDragAndSwipeCallback = new ItemDragAndSwipeCallback(mAdapter);
+ItemTouchHelper itemTouchHelper = new ItemTouchHelper(itemDragAndSwipeCallback);
+itemTouchHelper.attachToRecyclerView(mRecyclerView);
+
+开启拖拽
+mAdapter.enableDragItem(itemTouchHelper, R.id.textView, true);
+mAdapter.setOnItemDragListener(listener);
+
+开启滑动删除
+mAdapter.enableSwipeItem();
+mAdapter.setOnItemSwipeListener(listener2);
+
+默认不支持多个不同的 ViewType 之间进行拖拽，如果开发者有所需求
+重写ItemDragAndSwipeCallback里的onMove()方法，return true即可
+
+
+八、Expandable布局
+查看源码
+
+九、自定义BaseViewHolder

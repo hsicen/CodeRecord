@@ -17,6 +17,12 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    //指定Java编译版本
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
@@ -32,4 +38,9 @@ dependencies {
 
     implementation dependenceExtra.logger
     implementation dependenceExtra.jodaTime
+
+    implementation dependenceExtra.rxJava
+    implementation dependenceExtra.rxAndroid
+
+    implementation dependenceExtra.gson
 }

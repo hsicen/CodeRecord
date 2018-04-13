@@ -1,0 +1,13 @@
+Android系统架构
+Linux内核，Library和运行时环境，App Framework，Application
+
+1.	Linux：Android最底层核心层，Linux层包含了Android系统的核心服务，包含了硬件驱动，进程管理，安全系统等等
+2.	Dalvik和ART：前者是运行时编译，包含了一整套的Android运行环境虚拟机，每个App都会分配Dalvik虚拟机来保证相互之间不受干扰，并保持独立；ART是5.0开始使用的安装时编译
+3.	Framework：系统库
+4.	Standard libraries：标准库
+5.	Application：应用层
+
+Android App组件架构
+Activity，BroadCastReceiver，ContentProvider，Service
+
+1.	四大组件分工明确，共同构成了可复用，灵活，低耦合的Android系统；Activity负责UI元素的加载与页面之间的跳转，代表了一个页面单元；Service负责UI无关的工作，如在后台执行耗时操作；ContentProvider负责存储、共享数据，使得数据可以在多个应用之间共享；Broadcast则是多个组件，应用之间进行通信，简化了Android开发中的通信问题。

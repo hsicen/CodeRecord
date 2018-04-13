@@ -11,15 +11,12 @@ import android.widget.Toast;
  * 描述：单例Toast
  */
 public class ToastUtils {
-
     private static final int TIME_SHORT = Toast.LENGTH_SHORT;
     private static final int TIME_LONG = Toast.LENGTH_LONG;
 
     private static Toast mToast;
 
-    /**
-     * private
-     */
+    /*** private*/
     private ToastUtils() {
 
         throw new UnsupportedOperationException("you can't initial this...");

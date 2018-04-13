@@ -1,0 +1,425 @@
+1.	变量和标识符
+	①val：是只读的，仅能一次赋值，后面不能被重新赋值
+	  var：是可写的，在它的生命周期中可以被多次赋值
+	  在Kotlin中首选使用val变量，使用val变量可以带来可预测的行为和线程安全等优点
+	②变量名就是标识符，由字母，数字，下划线组成的字符序列；变量名区分大小写，遵循驼峰式命名规范
+
+2.	关键字和修饰符
+	①类修饰符
+		abstract:抽象类  final:不可被继承的final类  enum:枚举类  open:可继承open类
+		annotation:注解类  sealed:密封类  data:数据类
+	②成员修饰符
+		override:重写函数(方法)  open:声明函数可被重写  final:声明函数不可被重写
+		abstract:声明函数为抽象函数  lateinit:延迟初始化
+	③访问权限修饰符
+		private:私有,当前类可访问  protected:当前类以及继承该类的可访问  public:默认值
+		internal:整个模块内可访问
+	④协变逆变修饰符
+		in:消费者类型修饰符,in T 等价于 ? extends T
+		out:生产者类型修饰符,out T 等价于 ? super T
+	⑤函数修饰符
+		tailrec:尾递归  operator:运算符重载函数  infix:中缀函数  inline:内联函数
+		external:外部函数  suspend:挂起携程函数
+	⑥属性修饰符
+		const:常量修饰符
+	⑦参数修饰符
+		vararg:变长参数修饰符  noinline:不内联参数修饰符  
+		crossinline:当内联函数不是直接在函数中使用lambda参数,而是通过其它执行上下文.这种情况下可在参数前使用该关键字修饰
+	⑧类型修饰符
+		reified:具体化类型参数
+	⑨其它关键字
+		查看Kotlin.txt中对关键字的罗列
+
+3.	流程控制语句
+	分支语句(if,when)
+	循环语句(for,while)
+	跳转语句(return,break,continue,throw)
+	(1)	if语句是一个表达式,它会返回一个值
+	(2)	if的分支可以是代码块,最后的表达式作为该块的值
+	(3)	when表达式类似于switch-case表达式
+	(4)	when的每一个分支也可以是一个代码块,它的值是快中最后一个表达式的值
+	(5)	when中如果条件都不满足会走else分支,类似于default
+	(6)	when中如果有很多分支需要相同的处理方式,可以把多个分支条件放在一起,用逗号分隔
+	(7)	when中可以用任意表达式作为分支条件
+	(8)	for循环可以对任何提供迭代器的对象进行遍历
+	(9)	while和do.while的使用方式和Java一致
+	(10)在Kotlin中可以直接使用=符号来返回一个函数的值
+	(11)在Lambda表达式中遇到return会直接返回最近的外层函数,相当于函数中的return
+	(12)标签：隐式标签和显示标签结合return和continue的使用
+	(13)throw是表达式,类型为Nothing,类似于void，用来标记无返回的函数
+	(14)
+
+4.	操作符与重载
+	(1)	操作符的优先级(高--->低)
+		后缀：++  --  .  ?.  ?
+		前缀：-  +  ++  --  !  labelDefinition@
+		右手类型运算：:  as  as?
+		乘除取余：*  /  %
+		加减：+  -
+		区间范围：..
+		infix函数：中缀操作符
+		Elvis操作符：?:
+		命名检查符：in  !in  is  !is
+		比较大小：<  >  <=  >=
+		相等性判断：==  !=  ===  !==
+		与：&&
+		或：||
+		赋值：=  +=  -=  *=  /=  %=
+	(2)	一元操作符：前缀操作符，递增，递减等
+		+a -> a.unaryPlus()
+		-a -> a.unaryMinus()
+		!a -> a.not()
+		a++ -> a.inc()
+		a-- -> a.dec()
+
+		例：重载一元减法操作符。
+		data class Point(val x: Int, val y: Int)
+		operator fun Point.unaryMinus() = Point(-x, -y)
+	(3)	二元操作符	
+		a+b -> a.plus(b)
+		a-b -> a.minus(b)
+		a*b -> a.times(b)
+		a/b -> a.div(b)
+		a%b -> a.rem(b)/a.mod(b)
+		a..b -> a.rangeTo(b)
+
+		a in b  -> b.contains(a)
+		a !in b -> !b.contains(a)
+
+		a[i] -> a.get(i)
+		a[i]=b -> a.set(i, b)
+
+		a()  -> a.invoke()
+		a(i) -> a.invoke(i)
+
+		a+=b -> a.plusAssign(b)
+		a-=b -> a.minusAssign(b)
+		a*=b -> a.timesAssign(b)
+		a/=b -> a.divAssign(b)
+		a%=b -> a.modAssign(b)
+
+		a==b -> a?.equals(b) ?: (b === null)
+		a!=b -> !(a?.equals(b) ?: (b === null))
+
+		val y = x?:0 ->val y = if(x != null) x else 0
+
+		a>/</>=/<=b -> a.compareTo(b)>/</>=/<=0
+
+		=	赋值运算
+		==	等于运算，比较值而不是引用
+		===	完全等于运算，即比较值有比较引用
+	(4)用infix函数自定义中缀操作符
+		data class Person(val name: String, val age: Int)
+		infix fun Person.grow(years: Int):Person{
+			return Person(name, age+years)
+		}
+
+		val person = Person("Jack", 20)
+		person.grow(2) 等价于 person grow 2
+
+5.	类型系统与可空类型
+	(1)	Kotlin的系统类型
+		①Kotlin分为可空类型和不可空类型
+		②Kotlin去掉了原始类型，只有包装类型，编译器在编译代码时会自动把包装类型拆箱为原始类型
+		③不可空类型与Java中的原始类型相对应，可空类型与Java中包装类型相对应
+		④Kotlin中使用Array类型代替了Java中的T[]数组类型，定义了get,set,size函数
+			BooleanArray/boolean[]	ByteArray/byte[]	CharArray/char[]	ShortArray/short[]
+			IntArray/int[]			LongArray/long[]	FloatArray/float[]	DoubleArray/double[]
+	(2)	可空类型
+		T?	表示T类型可为空
+		?:	Elvis操作符
+	(3)	安全调用操作符 ?.
+		var nullableStr: String? = null
+		nullableStr?.length >>>null
+	(4)	非空断言 !!
+		不为空的情况下再调用,否则抛出异常
+		nullableStr!!.length
+	(5)	Elvis运算符 ?:
+		该操作符用来给定一个在是null的情况下的替代值
+		var s = nullableStr?:"NULL"  >>>s NULL
+
+6.	特殊类型 
+	Unit,Nothing,Any以及对应的可空类型
+	(1)	Unit和Unit?
+		当一个函数没有返回值的时候我们用Unit来表示,类似于Java中的void;大多数时候，我们并不需要显示的返回Unit
+		或者声明一个函数返回类型为Unit,编译器会自动推断出
+	(2)	Nothing和Nothing?
+		Nothing用来表达一个从来不存在的返回值,计算结果是永远不会返回的
+		Nothing?只包含一个值:null,用作任何可空类型的空应用
+	(3)	Any和Any?
+		Any是所有非空类型层次的根
+		Any?是所有可空类型层次的根
+
+7.	类型检测与类型转换
+	(1)	is运算符
+		检查对象是否是该类型或者派生于该类型，类似于Java的instanceof
+	(2)	类型自动转换
+		用is判断类型后，如果满足该类型会进行自动的类型转换
+	(3)	as运算符
+		显示类型转换,如果与指定类型兼容会转换成功;如果类型不兼容,使用as?运算符会返回null
+		在Kotlin中父类是不允许转换为子类型的
+
+8.	类的声明
+	(1)	空类
+		class AnEmptyClass
+		val anEmptyClass = AnEmptyClass()
+	(2)	声明类和构造函数
+		class Person(var name: String, var age: Int, var sex: String){
+			override fun toString(): String{
+				return "Person(name='$name',age='$age',sex='$sex')"
+			}
+		}
+
+		先声明属性，初始化对象时再去初始化属性
+		class PersonOne{
+			lateinit var name: String  //lateinit关键字表示该属性延迟初始化
+			var age: Int = 0  //lateinit不能修饰primitive类型
+			lateinit var sex: String
+			override fun toString(): String{
+				return "Person(name='$name',age='$age',sex='$sex')"
+			} 
+		}
+
+		声明多个构造函数
+		class PersonTwo{
+			lateinit var name: String
+			lateinit var sex: String
+			var age: Int = 0
+
+			constructor(name: String):this(){
+				this.name = name
+			}
+			constructor(name: String, age: Int):this(name){
+				this.name = name
+				this.age = age
+			}
+			constructor(name: String, age: Int, sex: String):this(name, age){
+				this.name = name
+				this.age = age
+				this.sex = sex
+			}
+
+			override fun toString(): String{
+				return "Person(name='$name',age='$age',sex='$sex')"
+			} 
+		}
+	(3)	抽象类abstract
+		包括抽象方法以及方法的实现，可以有构造函数
+		abstract class Shape{
+			abstract var width:  Double
+			abstract var height: Double
+			abstract var rdaius: Double
+			abstract fun area(): Double
+		}
+
+		class Circle(override var width: Double, 
+					 override var height: Double,
+					 override var rdaius: Double){
+			override fun area(): Double{  return 3.14*rdaius*3.14}
+		}
+
+		抽象类中可以有带实现的函数，如果想要开放给子类重新实现这个函数,可以在前面加上open关键字
+	(4)	接口interface
+		包含抽象的方法以及方法的实现，没有构造函数
+		interface Service{
+			val name: String
+			val owner: String
+
+			fun print(){ println("I am Service")}
+		}
+
+		class ServiceOne : Service
+		class ServiceTwo : Service,AnotherService{
+			override fun print(){
+				super<Service>.print()
+				super<AnotherService>.print()
+			}
+		}
+	(5)	object对象 单例对象
+		Kotlin中没静态属性和方法,但是可以使用object声明一个单例对象
+		object User{
+			val userName: String = "admin"
+			val passWord: String = "admin"
+			fun hello(){
+				println("Hello Objective C")
+			}
+		}
+		println(User.userName)
+		User.hello()
+	(6)	伴生对象 companion object
+		class DataServer{
+			companion object DataServer{
+				fun process(){ println("I am DataServer")}
+			}
+		}
+	(7)	数据类
+		数据类只存储数据,不包含操作行为的类
+		data class User(val userName: String, val passWord: String)
+		数据类可以在解构声明中使用
+		val user = User("admin","admin")
+		val (userName, passWord) = user
+		println("userName=$userName, passWord=$passWord")
+	(8)	注解
+	(9)	枚举
+		enum class Direction{
+			NORTH,SOUTH,WEST,EAST
+		}
+		枚举类型有两个内置属性name和ordinal 值和下标位置
+
+		枚举类实例可以被初始化
+		enum class Color(val rgb: Int){
+			RED(0xFF0000),
+			GREEN(0x00FF00),
+			BLUE(0x0000FF)
+		}
+
+	(10)内部类 inner class 类名
+		匿名内部类，方法内部类，静态内部类
+
+9.	函数与函数式编程
+	(1)	函数的声明
+		private fun function(x: Int, y: Int): Int{
+			return x*y;
+		}
+		限制符 关键字 函数名 参数列表 返回类型
+	(2)	函数变量
+		val sum = fun(x: Int, y: Int): Int{ return x*y}
+		sum(1,1)
+	(3)	lambda表达式
+		list.filter{ it%2 == 1}
+	(4)	高阶函数(类似于数学中的复合函数)
+		val f = fun(x: Int) = x%2 == 1
+		val g = fun(s: String) = s.length
+		val h = fun(g: (String) -> Int, f: (Int) -> boolean) : (String) -> boolean{
+			return { f(g(it)) }
+		}
+		typealias关键字(类型别名)
+		typealias G = (String) -> Int
+		typealias F = (Int) -> boolean
+		typealias H = (String) -> boolean
+
+		val h = fun(g: G, f: F): H{
+			return { f(g(it)) }	
+		}
+
+		list.filter(h(g,f))
+
+10.	扩展函数与属性
+	(1)	扩展函数
+		Kotlin支持为现有的类自由添加自定义函数
+		给String类增加两个函数：firstChar和lastChar
+		fun String.firstChar(): String{
+			return this[0].toString?:""
+		}
+		fun String.lastChar(): String{
+			return this[this.length-1]?: ""
+		}
+
+		str.firstChar()/str.lastChar()
+
+		List的filter函数的实现
+		fun <T> List<T>.filter(predicate: (T) -> boolean): MutableList<T>{
+			val result = ArrayList<T>()
+			this.forEach{
+				if(predicate(it))
+					result.add(it)
+			}
+
+			return result
+		}
+	(2)	扩展属性
+		扩展属性不允许定义在函数中
+
+11.	集合类
+	(1)	Kotlin中集合类不仅能持有普通对象，而且能够持有函数类型的变量
+		val funList: List<(Int) -> Boolean> = listOf({ it -> it%2 == 0}, { it -> it%2 == 1})
+		val list = listOf(1,2,3,4,5,6,7)
+		list.filter(funList[0])  //2,4,5
+		list.filter(funList[1])  //1,3,5,7
+	(2)	Kotlin的集合分类：可变集合(Mutable) 和 不可变集合(Immutable)
+		不可变集合：listOf(),setOf(),mapOf()  
+		可变的集合：mutableListOf(),mutableSetOf(),mutableMapOf() 
+		创建空集合时不能省略集合的类型 val emptyList: List<Int> = listOf()
+	(3)	forEachIndexed  带下标的forEach循环
+		list.map{}  	映射函数，将一种类型映射成另一种类型
+		list.flatten() 	压平list的结构,变成一层结构
+		list.flatMap{} 	先映射再压平,上面两个函数的结合
+		list.filter{}	过滤数据操作
+		list.filterIndexed{}	提供下标的过滤方法
+		list.reversed()	倒序
+		list.sorted()	升序
+		list.distinct()	数据去重
+
+12.	泛型
+	(1)	泛型接口，泛型类，泛型函数
+	(2)	类型上界 T:Comparable<T>  参数T都是实现了Comparable<T>接口的类
+	(3)	协变和逆变
+		子类型上界限定符： ? extends T  指定类型参数的上限(该类型必须是类型T或者它的子类型) Mutable<out T>
+		超类型下界限定符： ? super   T  指定参数类型的下限(该类型必须是类型T或者它的父类型) Mutable<in  T>
+
+		当 C => F, f(C) => f(F)	 那么f叫做协变  在协变类型中，我们不能向其中添加元素
+		当 C => F, f(F) => f(C)	 那么f叫做逆变	在逆变类型中，我们可以向其中添加元素
+	(4)	PECS原则
+		producer-extends, consumer-super
+		只能保证读取数据时类型安全的对象叫做生产者，用 out T 标记
+		只能保证写入数据时类型安全的对象叫做消费者，用 in  T 标记
+	(5)	类型擦除
+		Java和Kotlin 的泛型实现，都是采用了运行时类型擦除的方式。也就是说在运行时这些类型参数的信息将会被擦除
+		泛型是在编译器层次上实现的。生成的 class 字节码文件中是不包含泛型中的类型信息的，例如在代码中定义的List<Object>和List<String>等类型，在编译之后都会变成List。JVM看到的只是List，而由泛型附加的类型信息对JVM来说是不可见的
+
+13.	文件IO操作，正多线程则表达式，多线程
+	(1)	文件IO操作
+		val file = File(fileName)
+		val str = file.readText(Charset.forName("UTF-8"))  默认为UTF-8编码
+		val strs = file.readLines() 返回读取的每一行List集合
+		val byteArr = file.readBytes()
+
+		file.writeText(str, Charset.defaultCharset())  覆盖写入
+		file.appendText(str, Charset.defaultCharset()) 追加写入
+		file.writeBytes(byteArr)
+		file.appendBytes(byteArr)
+
+		遍历文件树 walk函数
+		val treeWalk = file.walk()
+		treeWalk.iterator().forEach{ println(it.absolutePath) }  输出当前目录下所有子目录及其文件
+		file.walk().filter() 对文件进行过滤操作
+
+		递归复制文件到指定路径
+		File.copyRescurively
+	(2)	网络IO
+		val bytes = URL(url).readBytes()
+		val text = URL(url).readText()
+	(3)	正则表达式
+		val r = Regex("[a-z]+", RegexOption.IGNORE_CASE)
+	(4)	多线程编程
+		Thread({
+			doSomething
+		}).start()   //Java中的Thread函数
+
+		thread(start = true, isDaemon = false, name = "DThread", priority = 3){
+			doSomething
+		}   //Kotlin中的thread函数
+
+		@Synchronized注解，synchronized同步块，@Volatile注解
+
+14.	Kotlin与DSL
+	DSL是问题解决方案模型的外部封装
+
+15.	反射  使用Java包的Reflect类或者直接使用Kotlin的reflect类
+	Kotlin的reflect包是单独放置的，如需使用需要单独添加Gradle  
+	compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+
+	val user = User("小明"，13)
+	val kClass = user::class  	//获取该对象的KClass对象
+	val jClass = user.javaClass //获取该对象的Java Class对象
+	在高阶函数中使用低阶函数 list.filter(::isOdd)
+	属性的引用： println(::user.get())
+				 ::user.set(2)
+	绑定函数和属性引用：
+		若：
+		val digitRegex = "\\d+".toRegex()
+		digitRegex.matches("7")
+		则：
+		val isDigit = digitRegex::matches
+		isDigit("7")
+	使用反射获取泛型信息：

@@ -1,0 +1,25 @@
+EventBus事件的注册(onCreate()方法里)
+	if (!EventBus.getDefault().isRegistered(this)) {
+        EventBus.getDefault().register(this);
+    }
+
+生命周期结束时的注销(onDestroy()方法里)
+	EventBus.getDefault.unregist(this);
+
+事件的订阅
+	定义一个方法和指定线程环境
+	@Subscribe(threadMode = ThreadMode.MAIN)
+    public void helloEventBus(String message){
+        tv_titleName.setText(message);
+    }
+
+事件的发布
+	EventBus.getDefault().post(params);
+
+可以发布自定义对象和接收自定义对象
+	EventBus.getDefault().post(new User("Vince","23"));
+	
+	@Subscribe(threadMode = ThreadMode.MainThread)
+	public void helloEventBus(User message){
+		mText.setText(message.name);
+	}

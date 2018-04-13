@@ -1,0 +1,92 @@
+依赖的架包：
+compile 'com.android.support:support-v4:23.1.1'
+compile 'com.flyco.tablayout:FlycoTabLayout_Lib:2.1.0@aar'
+
+参考GitHub上Layout的属性，设置不同的样式
+可以自定义Indicator的宽高和radius来设置形状，也可以通过indicator_style来设置指示器的形状
+可以设置字体选中和没选中的颜色，选中时字体加粗，设置指示器的颜色，字体的大小写设置，Tab的宽度
+ tl:tl_indicator_color="#2C97DE"  设置指示器的颜色
+ tl_indicator_height 					设置指示器的高度
+ tl_indicator_width					设置指示器的宽度
+ tl_indicator_margin_left 		设置指示器距离左边的宽度
+ tl_indicator_margin_top
+ tl_indicator_margin_right
+ tl_indicator_margin_bottom
+ tl_indicator_corner_radius	设置指示器的圆弧度
+ tl_indicator_gravity					设置指示器的位置（Gravity或者Bottom）
+ tl_indicator_style						设置指示器的样式（NORMAL or TRIANGLE or BLOCK）
+ tl_underline_color					设置指示器和Tab之间的颜色
+ tl_underline_height					设置指示器和Tab之间的距离
+ tl_underline_gravity				设置underline的位置
+ tl_divider_color							设置隔离Tab的divider的颜色
+ tl_divider_width						设置隔离Tab的divider的宽度
+ tl_divider_padding
+ tl_tab_padding	、tl_tab_space_equal、tl_tab_width		设置Tab的内距，设置Tab的大小是否平分，设置Tab的宽度
+ tl_textsize，tl_textSelectColor/tl_textUnselectColor，tl_textBold			设置字体的大小，设置选中字体的颜色和未选中字体的颜色，设置字体是否加粗
+ tl_iconWidth、tl_iconHeight、tl_iconVisible、tl_iconGravity、tl_iconMargin   设置图标的相关属性
+ tl_indicator_anim_enable、tl_indicator_anim_duration、tl_indicator_bounce_enable、tl_indicator_width_equal_title  设置指示器的相关动画
+
+
+一、SlidingTabLayout的使用：
+1、添加控件，查找控件
+2、tabLayout绑定ViewPager（tabLayout.setViewPager(viewPager,pagerTitles)）
+	作者提供了多种设置方法，可以只设置ViewPager，然后在ViewPager的适配器中的getPageTitle方法里设置标题。。。。。。
+	tabLayout.setViewPager(viewPager)；
+	tabLayout.setViewPager(viewPager,pagerTitles)；
+	tabLayout.setViewPager(viewPager,pagerTitles,this,mFragments);
+3、可以设置一些showDot();showMsg();setMsgMargin()等方法
+4、设置监听器OnTabSelectListener
+
+
+二、CommonTabLayout的使用：
+1、添加控件，查找控件
+2、创建TabEntity的集合,根据页面数创建，创建Tab的标题，选中Icom和未选中Icom的资源数组
+private ArrayList<CustomTabEntity> mTabEntities = new ArrayList<>();
+for (int i = 0; i < mTitles.length; i++) {
+            mTabEntities.add(new TabEntity(mTitles[i], mIconSelectIds[i], mIconUnselectIds[i]));
+        }
+3、tabLayout设置数据源      tabLayout.setData(mTabEntities);
+4、tabLayout设置监听器       tabLayout.setOnTabSelectListener();
+5、viewPager设置监听器
+viewPager和tabLayout的关联，在各自的监听器里的选中监听方法里设置对方的页面选中状态
+
+自定义的TabEntity是继承于CustomTabEntity的，需要重写里面的三个方法
+public class TabEntity implements CustomTabEntity {
+    public String title;
+    public int selectedIcon;
+    public int unSelectedIcon;
+
+    public TabEntity(String title, int selectedIcon, int unSelectedIcon) {
+        this.title = title;
+        this.selectedIcon = selectedIcon;
+        this.unSelectedIcon = unSelectedIcon;
+    }
+
+    @Override
+    public String getTabTitle() {
+        return title;
+    }
+
+    @Override
+    public int getTabSelectedIcon() {
+        return selectedIcon;
+    }
+
+    @Override
+    public int getTabUnselectedIcon() {
+        return unSelectedIcon;
+    }
+}
+
+
+三、SegmentTabLayout的使用：
+ tl:tl_indicator_color="#F6CE59"  选中的Tab的颜色
+ tl:tl_bar_color="#ffffff"    未选中的Tab的颜色
+ tl:tl_indicator_corner_radius="8dp"   指示器的圆弧度
+
+  1、添加控件，查找控件
+  2、设置数据    tabLayout.setTabData(titles);
+  3、可以设置监听器,实现和ViewPager的联动   tabLayout.setOnTabSelectListener与viewPager.addOnPagerChangeListener
+  4、也可以这样设置  tabLayout.setTabData(titles,this,R.id.replaceFramLayout,mFragments);
+		在布局文件里设置占位的FrameLayout，然后再用Fragment集合去替换
+ 还可以设置showDot(),showMsg(),等状态

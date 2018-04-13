@@ -1,0 +1,114 @@
+1.	添加依赖
+	 compile 'com.github.bumptech.glide:glide:3.7.0'
+2.	添加权限
+	<uses-permission android:name="android.permission.INTERNET" />
+3.	简单使用
+	Glide.with(mContext)
+		.load(url)
+		.into(imageView);
+	(1)	with()方法中的实例会决定Glide加载图片的生命周期,Glide加载图片的生命周期和传入的实例的生命周期一致
+	(2)	load()方法用于指定待加载的图片资源,支持网络图片,本地图片,资源id,文件,二进制流,Uri对象等
+	(3)	into()方法用于指定被加载的对象,比如ImageView
+
+	源码分析：
+		(1)	Glide通过with方法来获得一个RequestManager对象，with传入的对象分两种情况，一种是applicationContext一种是非applicationContext， 如果是非applicationContext，Glide无法得知其生命周期，就通过添加一个Fragment来间接获得其生命周期，来实现图片的加载和取消加载，如果是在非主线程中使用Glide，会被强制当成applicationContext来处理
+		(2)	load方法返回一个DrawableTypeRequest
+		(3)	into方法会去执行网络请求，最终把获得的流进行decode，然后设置到View上
+			into方法的执行首先会对ScanType进行处理，会分成CenterCrop和FitCenter两种模式，然后再调用Glide的buildImageViewTarget方法来创建一个Target展示图片，Target对象的创建是通过ImageViewTargetFactory来创建的，该工厂可以创建三种类型的Target，分别是GlideDrawableImageViewTarget，BitmapImageViewTarget，DrawableImageViewTarget，只有当设置asBitmap时才会创建BitmapImageViewTarget,默认创建GlideDrawableImageViewTarget，创建好Target后，调用GenericRequest中的onResourceReady方法，设置相关状态，然后再调用target的onResourceReady方法，进行图片的展示与gif播放的逻辑.
+
+4.	占位图
+	在图片未加载完成/加载出错时显示占位图，在with和into之间加入
+	Glide.with(mContext)
+		 .load(url)
+		 .placeholder(R.drawable.placeholder)
+		 .error(R.drawable.error)
+		 .into(imageView);
+5.	强制指定加载的图片类型
+	Glide.with(mContext)
+		 .load(url)
+		 .asGif()/asBitmap()   动态图片/静态图片
+		 .placeholder(R.drawable.placeholder)
+		 .error(R.drawable.error)
+		 .into(imageView);
+6.	指定加载图片的尺寸
+	Glide.with(mContext)
+		.load(url)
+		.override(100,100)
+		.into(imageView);
+	一般情况下不需要手动指定图片的大小，Glide内部会根据ImageView的大小来加载合适尺寸的图片
+7.	Glide的缓存机制
+	(1)	内存缓存：防止应用重复的将图片数据读取到内存当中 (默认开启内存缓存)
+		LruCache算法和弱引用这两个方法来实现内存缓存
+		正在使用的图片会使用弱引用来进行缓存，不在使用中的图片使用LruCache来进行缓存
+	(2)	硬盘缓存：防止应用重复的从网络或其他地方下载和读取数据 (默认缓存转换过后的图片)
+		DiskLruCache类来实现硬盘缓存
+		磁盘缓存会先去读经过处理后的缓存图片，读不到再去读原始缓存图片
+
+	(3)	缓存key
+		Glide的缓存key在load方法中生成，决定缓存key的参数有10个
+		Glide会缓存原始图片和经过处理后的图片，原始图片的key由id和signature决定，处理后的图片的key由10个参数决定
+		Glide是将传入load方法中的对象作为id的，并且会使用GlideUrl来管理，如果想自定义GlideUrl，可以继承该对象，然后重写相关方法， 在load方法中new一个自定义的对象传进去
+8.	自定义Target展示回调后的resource图片
+	自定义Target可以继承自SimpleTarget或者ViewTarget，重写onResourceReady方法，处理展示逻辑
+	SimpleTarget<GlideDrawable/Bitmap/Drawable>
+	ViewTarget<T extends View, GlideDrawable/Bitmap/Drawable>
+9.	preload()方法   预加载，PreloadTarget
+	Glide.with(mContext)
+		.load(url)
+		.diskCacheStrategy(diskCacheStrategy.SOURCE)
+		.preload(); //有两个方法的重载
+	在使用预加载时最好将磁盘缓存指定为缓存原图片，不然调用into方法后，还会重新去网络上下载
+10.	downloadOnly()方法 	只下载图片，得到下载后存储的路径
+	downloadOnly(int width, int height)  用于子线程中下载图片
+		该方法返回一个FutureTarget对象，用该对象的get方法可以获取下载好的图片文件，如果没下载完，该方法会阻塞，直到图片下载完才会有返回值返回
+	downloadOnly(Y target)  用于主线程中下载图片
+		该方法需要一个自定义的Target继承自Target，Target接口的泛型必须指定成File对象；必须实现getSize和onResourceReady方法，其它方法可以不用实现；
+		Glide在加载之前会先计算图片的大小，然后回调到onSizeReady方法中，之后才会执行图片的加载，在getSize方法中可以直接返回Target.SIZE_ORIGINAL，返回图片的原始尺寸
+11.	listener()方法
+	Glide.with(mContext)
+		.load(url)
+		.listener(new RequestListener<String, GlideDrawable>(){
+			onException()
+			onResourceReady()
+			})
+		.into(imageView)
+	listener重写的两个方法都会返回一个boolean值，false表示这个事件没有被处理，还会继续向下传递，true表示这个事件已经被处理了，不会再继续向下传递这个事件；只有在onException方法中返回false的情况下才会继续调用setErrorPlaceholder方法。
+12.	图片变换功能
+	(1)	取消图片变换功能
+		dontTransform()方法可以取消FIT_CENTER等ScanType的作用
+		override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)可以恢复图片变换功能
+	(2)	自定义图片变换
+		自定义类继承BitmapTransform类，重写transform方法，实现自定义变换
+13.	自定义模块功能
+	(1)	更改Glide的默认配置
+		自定义类继承GlideMode类，实现applyOptions()和registerComponents()方法，在Manifest文件中添加一条meta-data数据
+		<meta-data
+            android:name="com.example.glidetest.MyGlideModule"   自定义类的完整路径
+            android:value="GlideModule" />	固定值
+        applyOptions()方法用来初始化Glide的配置项
+    (2)	替换Glide组件
+    	registerComponents()方法用来替换Glide组件
+    	手动替换和添加第三方库替换
+    	①	手动替换  以网络请求模块为例
+    		通过分析Glide类会发现，在Glide的构造方法中是通过register()方法来注册一个组件，register()方法中传入的参数表示Glide支持使用哪种参数类型来加载图片，以及如何去处理这种类型的图片加载；
+    		HttpUrlFetcher类才是真正的处理网络请求的地方，可以用OkHttp3仿照这个类写一个网络请求，然后再仿照HttpUrlGlideUrlLoader类写一个OkHttpGlideUrlLoader类并实现ModelLoader<GlideUrl, InputStream>接口，
+    		最后在registerComponents()方法中注册刚才写好的组件
+    		glide.register(GlideUrl.class, InputStream.class, new OkHttpGlideUrlLoader.Factory());
+    	②	引入第三方库替换   只需要在gradle当中添加几行库的配置就行了
+    		OkHttp3
+    		compile 'com.squareup.okhttp3:okhttp:3.9.0'
+    		compile 'com.github.bumptech.glide:okhttp3-integration:1.5.0@aar'
+
+    		OkHttp2
+    		compile 'com.github.bumptech.glide:okhttp-integration:1.5.0@aar'
+    		compile 'com.squareup.okhttp:okhttp:2.7.5'
+
+    		Volley
+    		compile 'com.github.bumptech.glide:volley-integration:1.5.0@aar'  
+   		    compile 'com.mcxiaoke.volley:library:1.0.19'
+14.	实现带进度的Glide图片加载
+	替换Glide底层的网络请求框架为OkHttp3，然后添加网络请求拦截器，实现网络请求进度的监听，具体代码见Demo
+15.	Glide4.0的使用
+	(1)	Api的调整与优化
+	(2)	RequestOptions的拆分，各种请求参数可以抽出单独的类配置，然后设置给Glide
+	(3)	Generated API  使用注解来配置各种参数  定制自己的API需要借助@GlideExtension和@GlideOption这两个注解

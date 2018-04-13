@@ -1,0 +1,214 @@
+屏幕尺寸信息
+1.	系统屏幕密度(密度-密度值-分辨率)
+	ldpi-120-240*320	mdpi-160-320*480	hdpi-240-480*800	xhdpi-320-720*1280	xxhdpi-480-1080*1920
+2.	独立像素密度dp
+	Android系统使用mdpi即密度值为160的屏幕作为标准，在这个屏幕上1px=1dp；其它的屏幕则需要通过比例进行换算，
+	ldpi:mdpi:hdpi:xhpdi:xxhdpi=3:4:6:8:12(0.75:1:1.5:2:3)
+3.	单位换算：见DisplayUtil工具类
+
+2D绘图基础
+1.	Paint类
+	setAntiAlias();  setColor();  setARGB();  setAlpha();  setTextSize();  setStyle();  setStokeWidth();
+2.	Canvas类
+	drawPoint();  drawLine();  drawLines();  drawRect();  drawRoundRect();  drawCircle();  drawArc();  drawOval();
+	drawText();  drawPosText();  drawPath();
+
+Android XML绘图
+1.	Bitmap
+	<?xml version="1.0" encoding="utf-8"?>
+	<bitmap xmlns:android="http://schemas.android.com/apk/res/android"
+		android:src="@android/ic_launcher"/>
+2.	Shape
+	<?xml version="1.0" encoding="utf-8"?>
+	<Shape xmlns:android="http://schemas.android.com/apk/res/android"
+		android:shape="">
+	<corners
+		radius,.... />
+	<gradient //渐变
+		startColor..... />
+	<padding
+		left......  />
+	<size
+		width...  />
+	<solid
+		color...  />
+	<stroke
+		width...  />
+	</Shape>
+3.	Layer
+	<?xml version="1.0" encoding="utf-8"?>
+	<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+		<item
+			.... />
+		<item
+			.... />
+	</layer-list>
+4.	Selector
+	实现静态绘图中的事件的反馈
+
+Android绘图技巧
+1.	Canvas类
+	canvas.save();      将之前的所有已绘制图像保存起来，让后续的操作就好像在一个新的图层上操作一样。
+	canvas.restore();   将我们在save之后绘制的所有图像与save之前绘制的图像进行合并
+	canvas.translate(); 画布平移到指定点，并以这个点为坐标原点
+	canvas.rotate();    画布翻转指定角度
+2.	Layer图层
+	Android中通过调用saveLayer(),saveLayerAlpha()方法来创建一个图层，使用restore(),restoreToCount()方法合并图
+
+色彩特效处理
+1.	色彩矩阵分析
+	色调：RGB色调设置
+	ColorMatrix hueMatrix = new ColorMatrix();
+	hueMatrix.serRotate(0, hue0);
+	hueMatrix.serRotate(1, hue1);
+	hueMatrix.serRotate(2, hue2);
+	饱和度：
+	ColorMatrix saMatrix = new ColorMatrix();
+	saMatrix.setSaturation(saturation);
+	亮度：
+	ColorMatrix lumMatrix = new ColorMatrix();
+	lumMatrix.setScale(lum, lum, lum, 1);
+	将三种效果合并：
+	ColorMatrix imageMatrix = new ColorMatrix();
+	imageMatrix.postConcat(hueMatrix);
+	imageMatrix.postConcat(saMatrix);
+	imageMatrix.postConcat(lumMatrix);
+	将效果设置进画笔：
+	paint.setColorFolter(new ColorMatrixColorFilter(imageMatrix));
+	canvas.drawBitmap(bm, paint);
+	安卓系统不允许直接修改原图，通过原图创建副本，并将原图绘制到副本中，以副本的形势来修改原图：
+	Bitmap bmp = Bitmap.createBitmap(bm.getWidth(), bm.getHeight(), Bitmap.Config.ARGB_8888);
+	Canvas canvas = new Canvas(bmp);
+	Paint paint = new Paint();
+	canvas.drawBitmap(bm, 0, 0, paint);
+2.	Android颜色矩阵ColorMatrix(4*5的矩阵)
+	(1)灰度效果
+		0.33F	0.59F	0.11F	0	0
+		0.33F	0.59F	0.11F	0	0
+		0.33F	0.59F	0.11F	0	0
+		0		0		0		1	0
+	(2)图像反转
+		-1	0	0	1	1
+		0	-1	0	1	1
+		0	0	-1	1	1
+		0	0	0	-1	0
+	(3)怀旧效果
+		0.393F	0.769F	0.189F	0	0
+		0.349F	0.686F	0.168F	0	0
+		0.272F	0.534F	0.131F	0	0
+		0		0		0		1	0
+	(4)去色效果
+		1.5F 	1.5F 	1.5F 	0	-1
+		1.5F 	1.5F 	1.5F 	0	-1
+		1.5F 	1.5F 	1.5F 	0	-1
+		0		0		0		1	0
+	(5)高饱和度
+		1.438F	-0.122F	-0.016F	0	-0.03F
+		-0.062F	1.378F	-0.016F	0	0.05F
+		-0.062F	-0.122F	1.438F	0	-0.02F
+		0		0		0		1	0
+3.	像素点分析
+	获取Bitmap中的像素点：bitmap.getPixels(oldPsArr, 0, bm.getWidth(), 0, 0, width, height);
+	获取到每个像素具体的ARGB值：
+	color = oldPsArr[i];
+	r = Color.red(color);
+	g = Color.green(color);
+	b = Color.blue(color);
+	a = Color.alpha(color);
+	修改每个像素点的值：
+	r1 = (int)(0.393*r+0.769*g+0.189*b);
+	g1 = (int)(0.394*r+0.686*g+0.168*b);
+	b1 = (int)(0.272*r+0.534*g+0.131*b);
+	合成新的像素点：
+	newPsArr[i] = Color.argb(a, r1, g1, b1);
+	将像素点集合设置给Bitmap：bmp.setPixels(newPsArr, 0, width, 0, 0, width, height);
+4.	常用像素点的处理效果
+	(1)底片效果
+	比如B像素点实现底片效果：
+	B.r = 255 -B.r;
+	B.g = 255 -B.g;
+	B.b = 255 -B.b;
+	(2)老照片效果
+	r1 = (int)(0.393*r+0.769*g+0.189*b);
+	g1 = (int)(0.394*r+0.686*g+0.168*b);
+	b1 = (int)(0.272*r+0.534*g+0.131*b);
+	(3)浮雕效果
+	ABC三个点，求B点对应的浮雕效果
+	B.r = C.r-B.r+127;
+	B.g = C.g-B.g+127;
+	B.b = C.b-B.b+127;
+
+图形特效处理
+1.	Android变形矩阵Matrix(3*3)
+	Translate-平移变换	Rotate-旋转变换	Scale-缩放变换	Skew-错切变换
+2.	像素块分析
+	获取图像交叉点坐标：
+	mBitmap = BitmapFactory.decodeResource(context.getResource(), R.drawable.test);
+	float mWidth = mBitmap.getWidth();
+	float mHeight = mBitmap.getHeight();
+	int index = 0;
+	for (int y=0; y<=HEIGHT; y++) {
+		float fy=mHeight*y/HEIGHT;
+		for (int x=0; x<=WIDTH; x++) {
+			float fx=mWidth*x/WIDTH;
+			orig[index*2+0]=verts[index*2+0]=fx;
+			orig[index*2+1]=verts[index*2+0=1]=fx+100;
+			index +=1;
+		}
+	}
+	改变交叉点纵坐标的值，实现旗帜飘扬的效果：
+	private void flagWave(){
+		for(int j=0; j<=HEIGHT; j++){
+			for (int i=0; i<=WIDTH; i++) {
+				verts[(j*(WIDTH+1)+i)*2+0]+=0;
+				float offsetY=(float)Math.sin((float)i/WIDTH*2*Math.PI);
+				verts[(j*(WIDTH+1)+i)*2+1]=orig[(j*WIDTH+i)*2+1]+offsetY*A;
+			}
+		}
+	}
+	绘制图像：
+	canvas.drawBitmapMesh(bitmap, WIDTH, HEIGHT, verts, 0, null, 0, null);
+	给函数增加周期性：
+	float offsetY=(float)Math.sin((float)i/WIDTH*2*Math.PI*K);
+	重绘时增加K值：
+	flagWave();
+	K+=0.1F;
+	canvas.drawBitmapMesh(bitmap, WIDTH, HEIGHT, verts, 0, null, 0, null);
+	invalidate();
+
+画笔特效处理
+1.	PorterDuffXfermode：控制两个图像间的混合显示模式(设置两个图层交集区域的显示方式,dst是先画的图形,src是后画的图形)
+	实现矩形，圆角，圆形图片
+	思路：先用普通画笔画一个Mask遮罩层，再用带PorterDuffXfermode的画笔将图形画在Mask层上
+	mBitmap = BitmapFactory.decodeResource(context.getResource(), R.drawable.test);
+	mOut = Bitmap.createBitmap(mBitmap.getWidth(), mBitmap.getHeight(), Bitmap.Config.ARGB_8888);
+	Canvas canvas = new Canvas(mOut);
+	mPaint = new Paint();
+	mPaint.setAntiAlias(true);
+	canvas.drawRoundRect(0,0,mBitmap.getWidth(),mBitmap.getHeight(),80,80,mPaint);
+	mPaint.setXfermode(new PorterDuffXfermode(PorterDuffXfermode.SRC_IN));
+	canvas.drawBitmap(mBitmap, 0, 0, mPaint);
+2.	实现刮刮卡效果
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

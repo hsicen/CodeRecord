@@ -45,6 +45,9 @@ ext {
             glideCompiler      : 'com.github.bumptech.glide:compiler:4.6.1',
 
             logger             : 'com.orhanobut:logger:2.2.0',
-            jodaTime           : 'joda-time:joda-time:2.9.9'
+            jodaTime           : 'joda-time:joda-time:2.9.9',
+
+            gson               : 'com.google.code.gson:gson:2.8.2'
+
     ]
 }

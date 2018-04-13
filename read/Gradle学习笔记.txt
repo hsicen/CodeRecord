@@ -1,0 +1,237 @@
+﻿
+app/build.gradle文件讲解：
+
+项目中完整的app/build.gradle文件如下
+apply plugin: 'com.android.application'
+
+def releaseTime() {
+    return new Date().format("yyyy-MM-dd", TimeZone.getTimeZone("UTC"))
+}
+
+android {
+    compileSdkVersion 21
+    buildToolsVersion '21.1.2'
+
+    defaultConfig {
+        applicationId "com.boohee.*"
+        minSdkVersion 14
+        targetSdkVersion 21
+        versionCode 1
+        versionName "1.0"
+        
+        // dex突破65535的限制
+        multiDexEnabled true
+        // 默认是umeng的渠道
+        manifestPlaceholders = [UMENG_CHANNEL_VALUE: "umeng"]
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+
+    signingConfigs {
+        debug {
+            // No debug config
+        }
+
+        release {
+            storeFile file("../yourapp.keystore")
+            storePassword "your password"
+            keyAlias "your alias"
+            keyPassword "your password"
+        }
+    }
+
+    buildTypes {
+        debug {
+            // 显示Log
+            buildConfigField "boolean", "LOG_DEBUG", "true"
+
+            versionNameSuffix "-debug"
+            minifyEnabled false
+            zipAlignEnabled false
+            shrinkResources false
+            signingConfig signingConfigs.debug
+        }
+
+        release {
+            // 不显示Log
+            buildConfigField "boolean", "LOG_DEBUG", "false"
+
+            minifyEnabled true
+            zipAlignEnabled true
+            // 移除无用的resource文件
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+
+            applicationVariants.all { variant ->
+                variant.outputs.each { output ->
+                    def outputFile = output.outputFile
+                    if (outputFile != null && outputFile.name.endsWith('.apk')) {
+                        // 输出apk名称为boohee_v1.0_2015-01-15_wandoujia.apk
+                        def fileName = "boohee_v${defaultConfig.versionName}_${releaseTime()}_${variant.productFlavors[0].name}.apk"
+                        output.outputFile = new File(outputFile.parent, fileName)
+                    }
+                }
+            }
+        }
+    }
+
+    // 友盟多渠道打包
+    productFlavors {
+        wandoujia {}
+        _360 {}
+        baidu {}
+        xiaomi {}
+        tencent {}
+        taobao {}
+        ...
+    }
+
+    productFlavors.all { flavor ->
+        flavor.manifestPlaceholders = [UMENG_CHANNEL_VALUE: name]
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile 'com.android.support:support-v4:21.0.3'
+    compile 'com.jakewharton:butterknife:6.0.0'
+    ...
+}
+
+
+
+
+ //指定apk打包生成的路径和名字
+    applicationVariants.all{ variant->
+        variant.outputs.each { output->
+            def oldFile = output.outputFile
+            def newName = '';
+            if(variant.buildType.name.equals('release')){
+                // APK输出文件名规则：aiyou-版本名-市场-release.apk
+                def releaseApkName = 'aiyou-' + '-' + variant.productFlavors[0].name + '-release.apk'
+                // appReleaseDir对应local.properties里面定义的路径，再加上日期（格式：201503011230）文件夹
+                output.outputFile = new File("/D/" + getDate(), releaseApkName)
+            }
+            if(variant.buildType.name.equals('beta')){
+                // APK输出文件名规则：aiyou-版本名-市场-release.apk
+                def releaseApkName = 'aiyou-' + '-' + variant.productFlavors[0].name + '-release.apk'
+                // appReleaseDir对应local.properties里面定义的路径，再加上日期（格式：201503011230）文件夹
+                output.outputFile = new File("/D/" + getDate(), releaseApkName)
+            }
+            if(variant.buildType.name.equals('debug')){
+                // APK输出文件名规则：aiyou-版本名-市场-release.apk
+                def releaseApkName = 'aiyou-' + '-' + variant.productFlavors[0].name + '-release.apk'
+                // appReleaseDir对应local.properties里面定义的路径，再加上日期（格式：201503011230）文件夹
+                output.outputFile = new File("/D/" + getDate(), releaseApkName)
+            }
+        }
+    }
+
+//获取时间戳
+def getDate() {
+    def date = new Date()
+    def formattedDate = date.format('yyyyMMddHHmm')
+    return formattedDate
+}
+
+
+
+解决方法超过65535限制:
+1，在gradle文件中添加依赖和设置添加的库enable为true
+2，在Application中重写一个方法
+
+
+应用渠道和版本设置
+1.在Project Structure中的Flavors可以设置我们应用在各个渠道的信息，比如小米，华为，百度渠道
+2.在Project Structure中的BuildTypes可以设置编译的版本，比如debug，release，product版本
+不同的版本可以设置不同的包名，
+
+渠道和版本设置总结：
+渠道设置(友盟打包为例)：
+1，在Manifest中添加一下代码
+<meta-data
+            android:name="UMENG_CHANNEL"
+            android:value="${UMENG_CHANNEL_VALUE}" />
+2.在app下的gradle中添加一下代码
+productFlavors {
+        xiaomi {
+            applicationId 'com.utouu.testdemo.xiaomi'
+        }
+        baidu {
+            applicationId 'com.utouu.testdemo.baidu'
+        }
+        huawei {
+            applicationId 'com.utouu.testdemo.huawei'
+        }
+    }
+
+    productFlavors.all {
+        flavor -> flavor.manifestPlaceholders = [UMENG_CHANNEL_VALUE: name]
+    }
+其中applicationId用来区分不同渠道的包名，保证同一个手机上可以安装多个渠道的app
+
+应用版本设置
+在app下的gradle中一下代码区分
+buildTypes {
+        /*实现代码的混淆*/
+        release {
+            buildConfigField "boolean", "LOG_DEBUG", "false" /*不显示Log*/
+            shrinkResources true    /*移除无用的Resource文件*/
+            minifyEnabled true    /*开启混淆*/
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        product {
+
+        }
+        debug {
+            applicationIdSuffix '.debug'
+        }
+    }
+同时配置了3个版本，分别是release，product，debug三个版本的app
+
+
+
+指定不同版本和渠道的apk应用名称和指定apk的生成路径
+在app下的gradle中一下代码区分：
+applicationVariants.all{ variant->
+        variant.outputs.each { output->
+            def oldFile = output.outputFile
+            def newName = '';
+            if(variant.buildType.name.equals('release')){
+                // APK输出文件名规则：aiyou-版本名-市场-release.apk
+                def releaseApkName = 'utouu-' + '-' + variant.productFlavors[0].name + '-release.apk'
+                // appReleaseDir对应local.properties里面定义的路径，再加上日期（格式：201503011230）文件夹
+                output.outputFile = new File("/D/" + getDate(), releaseApkName)
+            }
+            if(variant.buildType.name.equals('product')){
+                // APK输出文件名规则：aiyou-版本名-市场-release.apk
+                def releaseApkName = 'utouu-' + '-' + variant.productFlavors[0].name + '-product.apk'
+                // appReleaseDir对应local.properties里面定义的路径，再加上日期（格式：201503011230）文件夹
+                output.outputFile = new File("/D/" + getDate(), releaseApkName)
+            }
+            if(variant.buildType.name.equals('debug')){
+                // APK输出文件名规则：aiyou-版本名-市场-release.apk
+                def releaseApkName = 'utouu-' + '-' + variant.productFlavors[0].name + '-debug.apk'
+                // appReleaseDir对应local.properties里面定义的路径，再加上日期（格式：201503011230）文件夹
+                output.outputFile = new File("/D/" + getDate(), releaseApkName)
+
+            }
+        }
+    }
+//获取时间戳
+def getDate() {
+    def date = new Date()
+    def formattedDate = date.format('yyyyMMddHHmm')
+    return formattedDate
+}
+
+
+
+设置不同apk版本的应用名称和应用图标：
+我们在src目录下新建一个debug目录，将main目录下的res目录复制一份到debug目录下，
+修改各个分辨率下的桌面Icon和strings.xml文件中的应用名称，加个debug标识。
+复制放置启动图标的mipmap文件夹(一个分辨率或者几个分辨率)
+复制包含应用名称的values/strings文件

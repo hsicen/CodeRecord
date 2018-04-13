@@ -1,0 +1,43 @@
+第一步：添加依赖
+在项目的的gradle文件中添加以下代码：
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.greenrobot:greendao-gradle-plugin:3.2.1'
+    }
+}
+在app的gradle文件中添加以下代码：
+apply plugin: 'org.greenrobot.greendao'
+
+dependencies {
+    compile 'org.greenrobot:greendao:3.2.0'
+}
+在app的gradle文件中配置产生的文件的路径：
+greendao{
+        schemaVersion 1                                          数据库schema版本，也可以理解为数据库版本号
+        daoPackage 'com.utouu.greendao'      设置DaoMaster、DaoSession、Dao包名
+        targetGenDir 'src/main/java'					设置DaoMaster、DaoSession、Dao目录
+    }
+
+第二步：写实体类后make project一次
+
+第三步：封装GreenDao调用方法
+GreenDaoUtils类
+
+第四步：执行增删改查操作
+UserDao userDao = GreenDaoUtils.getSingleTon(this).getmDaoSession().getUserDao();
+userDao.insert()等操作
+
+
+常见注解：
+实体@Entity注解
+@Id :主键 Long型，可以通过@Id(autoincrement = true)设置自增长
+@Property：设置一个非默认关系映射所对应的列名，默认是的使用字段名举例：@Property (nameInDb="name")
+@NotNul：设置数据库表当前列不能为空
+@Transient：添加次标记之后不会生成数据库表的列
+@Index：使用@Index作为一个属性来创建一个索引，通过name设置索引别名，也可以通过unique给索引添加约束
+@Unique：向数据库列添加了一个唯一的约束
+@ToMany：定义与多个实体对象的关系
+@ToOne：定义与另一个实体（一个实体对象）的关系

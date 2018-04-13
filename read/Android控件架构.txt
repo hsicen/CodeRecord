@@ -1,0 +1,63 @@
+1.	Android控件架构：PhoneWindow--DecorView(LinearLayout)--TitleView和ContentView(FrameLayout)
+	requestWindowFeature()方法一定要在调用setContentView()方法之前才能生效
+2.	View的测量：onMeasure()方法,使用MeasureSpect类，该类是一个32位的int值，高2位位测量模式，低30位位测量大小
+	(1)测量模式：
+		EXACTLY：	精确值模式(如 100dp, match_parent)
+		AT_MOST：	最大值模式(如 wrap_content)
+		UNSPECIFIED：不指定其大小测量模式,View想多大就多大，通常情况下在绘制自定义View时才会使用
+	(2)View类默认的onMeasure()方法只支持EXACTLY模式，如果要让自定义View支持wrap_content属性,那么必须重写onMeasure()方法来指定wrap_content的大小
+	(3)通过MeasureSpect类，我们可以获取到View的测量模式和View想要绘制的大小，来控制View最后显示的大小
+	(4)系统最终会调用setMeasureDimension(int width, int height)方法将测量后的宽高值设置进去，完成测量工作
+	private int measureHeight(int heightMeasureSpec) {
+		int heightMode = MeasureSpec.getMode(heightMeasureSpec);
+		int heightSize = MeasureSpec.getSize(heightMeasureSpec);
+		switch (heightMode) {
+			case MeasureSpec.UNSPECIFIED:
+			case MeasureSpec.AT_MOST:
+				break;
+			case MeasureSpec.EXACTLY:
+				mHeight = heightSize;
+				break;
+			default:
+				break;
+		}
+		return mHeight;
+	}
+3.	View的绘制 onDraw()方法
+4.	ViewGroup的测量
+	(1)当ViewGroup的大小为wrap_content时，ViewGroup就需要对子View进行遍历，以便获得所有子View的大小，从而来决定自己的大小。而在其它模式下则会通过具体的指定值来设置自身的大小
+	(2)ViewGroup在测量时通过遍历所有子View，从而调用子View的Measure方法来获得每一个子View的测量结果
+	(3)当子View测量完成后，就需要将子View放在合适的位置，这个过程就是View的Layout过程，痛过onLayout()方法来实现，如果需要支持wrap_content属性,那么它还必须重写onMeasure()方法
+	(4)ViewGroup调用dispatchDraw()方法来绘制其子View
+
+自定义View
+1.	自定义View的实现思路
+	(1)对现有控件的拓展
+	(2)通过组合来实现新的控件
+	(3)重写View来实现全新的控件
+2.	对现有控件进行拓展
+	一般来说，我们可以在onDraw()方法中对原生控件行为进行拓展,在调用super.Draw()方法之前和之后都可以实现自己的逻辑。
+3.	继承ViewGroup实现复合控件
+	通过 attrs.xml文件定义自定义属性
+4.	重写View来实现全新的空间
+	onDraw(), onMeasure(), onTouchEvent()
+	可以在onSizeChanged()函数中进行对象的创建
+
+自定义ViewGroup
+1.	自定义ViewGroup通常需要重写onMeasure()方法对子View进行测量，重写onLayout()方法来确定子View的位置，重写onTouchEvent()方法来增加响应事件
+	@Override
+	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+		super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+		int childCount = getChildCount();
+		for (int i = 0; i < childCount; i++) {
+			View childView = getChildAt(i);
+			measureChild(childView, widthMeasureSpec, heightMeasureSpec);
+		}
+	}
+	
+事件拦截机制(MotionEvent)
+1.	事件处理顺序：
+	①dispathTouchEvent(MotionEvent event)		事件分发
+	②onInterceptTouchEvent(MotionEvent event)	事件拦截(true--拦截事件，自己处理；false(默认值)--不拦截，继续流程)
+	③onTouchEvent(MotionEvent event)			事件处理(true--处理事件；false(默认值)--返回给上级)
+2.	ViewGroup会进行事件的分发，拦截和处理，View会进行事件的处理

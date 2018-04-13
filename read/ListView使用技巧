@@ -1,0 +1,23 @@
+1.	使用ViewHolder模式提高效率,covertView的复用(50%以上)
+2.	设置item的分割线ListView的xml属性：divider和dividerHeight;divider可以设置颜色和图片资源
+	android:divider="@null" 设置分割线为透明
+3.	隐藏ListView的滚动条:  android:scrollbars="none"
+4.	取消ListView的item的点击效果:	android:listSelector=“#00000000”/"@android:color/transparent"
+5.	设置ListView需要显示在第几项:	listView.setSelectionItem(N)
+	这个方法类似于scrollTo,是瞬间完成的移动；还可以用如下代码来实现平滑的移动
+	mListView.smoothScrollBy(distance,duraction);
+	mListView.smoothScrollByOffest(offest);
+	mListView.smoothScrollToPosition(index);
+6.	动态修改ListView 
+	mData.add("data");	mAdapter.notifyDataSetChanged();
+7.	遍历Listview中所有的Item
+	mListView.getChildCount();	mListView.getChildAt(i);
+8.	处理空的Listview
+	mListView.setEmptyView(View) //该View为ListView标签同级的View布局
+9.	ListView滑动监听
+	OnTouchListener()
+	OnScrollListener()
+10.	设置具有弹性的ListView
+	重写ListView的overScrollBy()方法,将maxOverScrollY改为设置的值
+11.	实现聊天布局ListView
+	实现Adapter显示不同的布局

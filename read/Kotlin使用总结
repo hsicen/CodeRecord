@@ -1,0 +1,158 @@
+1.	Kotlin中匿名内部类的使用
+	val demoData = Gson().fromJson<DemoData.DataSource>(jsonStr, 
+		object : TypeToken<DemoData.DataSource>() { }.type)    //用 object : 匿名内部类的方式
+	srlLayout.setOnRefreshListener { refreshData() }   	//使用lambad表达式
+
+2.	伴生对象
+	Kotlin中类没有静态方法，大多数情况下，建议简单的使用包级函数。或在类内声明一个伴生对象，
+	就可以像Java/C#调用静态方法相同的语法来调用其它成员，只使用类名作为限定符
+
+3.	函数可以给参数指定默认值
+	fun speak(str: String = "Speak Something"){
+		doSomethinig
+	}
+
+4.	可变长度参数 vararg修饰
+	fun useSkill(vararg skill: Skill){
+		printlin(skill)
+	}
+	useSkill(skill1,skill2,skill3)
+
+5.	单表达式函数
+	fun isOdd(exp: Int): Boolean = exp%2==0
+
+	扩展函数，扩展属性
+		在原类的基础上扩展新的函数，属性
+		在与包名同级目录下file文件中定义这些扩展属性和函数，避免可见性问题，
+
+6.	object关键字(用来声明一些特殊的对象或类)
+	匿名内部类：
+	tvTest.setOnClickListener(object : View.OnClickListener {
+    override fun onClick(v: View?) {
+    	//doSomething
+    }})
+
+    实现单例：
+    object WeatherManager{
+    	fun rain(){  }
+    	fun sun(){ }
+    }
+    WeatherManager.rain()
+    WeatherManager.sun()
+
+    伴生对象： 把单例写在一个类中并且加上companion关键字，用来替代类似Java中的静态变量
+    open class Hero: Actor() {
+    override fun move() { }
+    companion object Factory{
+    	const val ARG_NAME = "movie"
+        fun create(): Hero = Hero()
+	}}
+	可以把伴生对象名称Factory省略掉，直接类名.方法/属性来调用 Factory.create()
+
+7.	Kotlin中的操作符
+	val dataList = listOf(0,1,2,3,4,5,6,7,8,9)
+
+	(1)	filter	筛选符合要求的元素
+		dataList.filter{ it>0 }
+	(2)	let		默认当前对象作为闭包的it参数，返回值为函数里最后一行，或者指定的return
+		"testLet".let { printlin( it )	printlin( it )
+			return 1	}
+	(3)	apply	调用某对象的apply函数，在函数范围内，可以任意调用该对象的任意方法，并返回该对象
+		dataList.apply {
+			add(10)	add(11)	add(12)	add(13)
+		}.let { printlin( it ) }
+	(4)	with	返回函数里最后一行，可以直接调用对象的方法，感觉像let和apply的结合
+		with( dataList) {
+			add(14)	add(15)	add(16)
+			printlin(this)
+		}.let { printlin(it)}
+	(5)	run 	和apply函数很像，但run函数使用最后一行的返回
+		"testRun".run {
+			printlin( this )
+		}.let { printlin( it) }
+	(6)	onEach,forEach	循环迭代集合中的每一个元素进行相关操作
+		dataList.forEach { }
+		dataList.onEach{ }
+	(7)	also	相当于apply，接受接收者，做一些操作并返回接收者
+	(8)	takeIf	检查接收者是否满足相关条件，并在满足时返回该接收者不满足时返回null
+	(9)	takeUnless	余takeIf相反，在不满足条件时返回该接收者否则返回null
+	(10)groupingBy	分组统计
+		val words = listOf("one","two","three","four","five","six","seven","eight","nine","ten")
+		words.groupingBy{ it.first() }.eachCount()  //统计第一个字母并分组
+	(11)map	类型转换
+	(12)flatMap	
+	(13)repeat	重复做某件事	repeat(10) { printlin(it) }
+	(14)to 	可用于map的创建 a to b
+
+
+8.	后端变量，后端属性, 编译器常量const
+
+9.	lateinit 延迟初始化, notNull 委托属性   来避免不必要的 !!操作
+	如果确定一个变量不会为空，可以使用上面这两种方法来初始化（只能作用于var变量）
+	private lateinit var mItem: DataSource.Movie
+	private var mItem: DataSource.Movie by Delegates.notNull()
+	val常量延迟加载用 by lazy{ 赋值 }
+
+10.	Kotlin 接口中方法可以为抽象也可以实现，
+	属性默认为abstract,不能够初始化，必须在实现类中初始化
+
+11.	委托 即代理
+	(1)	类委托
+		把一个类的方法请求委托给另一个类来实现
+		class <被委托类名>(b: 委托类) : 委托类 by b
+		被委托类(委托类).委托类的方法调用
+	(2)	属性委托
+		把var/val属性委托给一个类来实现
+		val/var <属性名> : <类型> by 被委托类
+		被委托类需要提供getvalue和setValue方法(对于var属性)
+		val属性需要提供getValue方法
+		getValue()和setValue()方法需要用operator关键字标记
+		operator fun getValue(ref: Any?, p: KProperty<*>): 属性类型 { .... }
+		operator fun setValue(ref: Any?, p: KProperty<*>, value: 属性类型) { .... }
+	(3)	标准委托
+		延迟属性 lazy  懒汉模式
+		val lazyValue: String by lazy{
+			Log.d(">>>","Just log when first initialized")
+			"value"
+		}
+
+		可观察属性
+		给View添加Listener，观察者模式
+		var voteNum : Int by Delegates.observable(initValue) {
+			property,oldValue,newValue ->{ doSomething }
+		}
+		var voteNum：Int by Delegates.vetoable(initValue) {
+			property,oldValue,newValue ->{ doSomething }
+		}
+		vetoable在属性执行set方法之前调用，返回一个Boolean值，为true时才会继续执行set方法
+		observable在属性执行set方法时调用
+
+		map映射
+		通过键去赋值，类似于JSON解析
+		class User(val map: Map<String, Any?>){
+			val name: String by map
+			val age:  String by map
+		}
+		val user = User(mapOf(
+			"name" to "Jhon",
+			"age" to 24	))
+
+12.	Kotlin可选类型避免NPE
+	(1)	尽量定义非空类型的变量，可以使用委托实现空检查和延迟初始化
+	(2)	定义了可空类型变量时，在使用时要用 ?. 实现空安全调用，或者使用 !! 在为空时抛出异常，或者使用 ?: 实现为空时的处理； ?. 空安全调用会返回一个可空类型 Any?;  如果定义的变量为全局变量，即使做了空判断，依然不能使用变量去调用方法或属性;	Evils操作符 ?: 右边可以是任何表达式，比如return,throw等
+	(3)	let函数		let接受的表达式参数中的调用方式非空的
+	(4)	orElse函数	结合Elvis函数使用，在 ?: 右边使用，可以进行相关的逻辑处理后再返回会结束当前函数的执行
+	(5)	guard函数	guard可以实现多个变量不为空时的判断
+13.	Kotlin的构造函数
+	(1)	Kotlin可以有一个主构造函数和多个二级构造函数
+	(2)	当Kotlin有主构造函数时，所有的二级函数都必须直接或间接的代理主构造函数
+	(3)	主构造函数的初始化可以放在init代码块中
+
+14.	高阶函数
+	(1)	()是函数操作符，如果一个类或者接口定制了函数的操作符，那么该类或者接口对象能直接使用函数操作符调用定制的函数
+		定义函数操作符的方式：
+		①使用operator修饰函数	②函数名必须为invoke	③函数必须为成员函数，就是类或者接口的函数
+	(2)	函数对象能够当成函数直接调用
+	(3)	函数的类型 (String, String, Int, ...(参数类型)) -> Int/Unit/...(返回值类型)
+	(4)	kotlin给出23个固定函数参数的接口 (从0个参数到22个参数)  故函数作为参数或者返回函数时，参数不要超过22个
+	(5)	函数作为参数，返回一个函数，其实就是一个固定接口的对象  

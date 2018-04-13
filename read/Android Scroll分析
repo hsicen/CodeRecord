@@ -1,0 +1,105 @@
+1.	Android坐标系(视图在手机屏幕中的位置关系,以手机屏幕左上角为坐标原点,向右为X轴正方向,向下为Y轴正方向)
+	getLocationOnScreen(intloaction[])来获取Android坐标系中点的位置,即该视图左上角在Android坐标系中的坐标;
+	在触控事件中使用getRowX(),getRowY()方法所获得的坐标同样是Android坐标系中的坐标
+2.	视图坐标系(子视图在父视图中的位置关系,以父视图左上角为坐标原点,向右为X轴正方向,向下为Y轴正方向)
+	在触控事件中使用getX()和getY()所获得的的坐标就是视图坐标系中的坐标
+3.	触控事件MotionEvent()
+	http://images2015.cnblogs.com/blog/682616/201607/682616-20160721144858294-821303696.png
+	View提供获取坐标的方法：
+	getLeft():View自身顶边到其父布局顶边的距离
+	getTop():View自身左边到其父布局左边的距离
+	getRight():View自身右边到其父布局左边的距离
+	getBottom():View自身底边到其父布局顶边的距离
+	MotionEvent提供的方法：
+	getX():点击点距离控件左边的距离，即视图坐标
+	getY():点击点距离控件顶边的距离，即视图坐标
+	getRawX():点击点距离整个屏幕左边的距离，即绝对坐标
+	getRawY():点击点距离整个屏幕顶边的距离，即绝对坐标
+4.	实现滑动的7种方法
+	①onLayout()方法：在onTouchEvent()方法中先记录触摸点的坐标，在ACTION_MOVE方法中再记录触摸点的坐标,最后在ACTION_MOVE中计算每次的偏移量，并调用layout(getLeft()+offsetX, getTop()+offsetY, getRight()+offsetX, getBottom()+offsetY)重新布局
+	②offsetLeftAndRight()和offsetTopAndBottom()：通过同样的方法计算出偏移量，然后调用这两个函数达到效果
+	③LayoutParams：获取到View的LayoutParams属性，然后获取到偏移量，设置layoutParams的margin属性后，再设置回去
+	LinearLayout.LayoutParams lp = getLayoutParams();
+	lp.leftMargin = getLeft() + offsetX;
+	lp.topMargin = getTop() +offsetY;
+	setLayoutParams(lp);
+	或者直接使用ViewGroup.MarginLayoutParams来实现
+	ViewGroup.MarginLayoutParams lp = getLayoutParams();
+	lp.leftMargin = getLeft() + offsetX;
+	lp.topMargin = getTop() +offsetY;
+	setLayoutParams(lp);
+	④scrollTo(x, y)和scrollBy(dx, dy)(瞬间移动效果)
+	在ViewGroup中使用这2个方法，移动的是所有子View；在View中移动的是View的内容，如TextView的文字；所以应该在ViewGroup中使用这两个方法
+	getParent().scrollBy(-offsetX, -offsetY); 需要使用负值才是实现View随手指的移动而移动
+	⑤Scroller：实现平滑的移动效果
+	首先初始化：mScroller = new Scroller(context);
+	接着重写computeScroll()方法，实现模拟滑动
+	@Override
+	public void computeScroll(){
+		super.computeScroll();
+		//判断是否完成滑动
+		if (mScroller.computeScrollOffset()) {
+			getParent().scrollTo(mScroller.getCurrX(), mScroller.getCurrY());
+			//重绘
+			invalidate();
+		}
+	}
+	最后startScroll开启模拟过程：mScroller.startScroll();
+	⑥属性动画：ViewDragHelper类
+	初始化ViewDragHelper,通过静态工厂初始化
+	mViewDragHelper = ViewDragHelper.create(this, callBack);
+	拦截事件
+	@Override
+	public boolean onInterceptTouchEvent(MotionEvent event){
+		return mViewDragHelper.shouldInterceptTouchEvent(event);
+	}
+	@Override
+	public boolean onTouchEvent(MotionEvent event){
+		mViewDragHelper.processEvent(event)
+		return true;
+	}
+	处理computeScroll()
+	@Override
+	public void computeScroll(){
+		if (mViewDragHelper.continueSettling(true)) {
+			ViewCompat.postInvalidateOnAnimation(this);
+		}
+	}
+	处理回调Callback
+	private ViewDragHelper.Callback mCallback = new ViewDragHelper.Callback(){
+		@Override
+		public boolean tryCaptureView(View child, int pointerId){
+			//只有mMainView可以移动
+			return mMainView == child;
+		}
+
+		@Override//垂直移动
+		public int clampViewPostionVertical(View child,int top,int dy){
+			return top;
+		}
+
+		@Override//水平移动
+		public int clampViewPostionHorizontal(View child,int left,int dx){
+			return left;
+		}
+
+		@Override
+		public void onViewReleased(View releasedChild, float xvel, float yvel){
+			super.onViewReleased(releasedChild, xvel, yvel);
+			//手指抬起缓慢移动到指定位置
+			if (mMainView.getLeft()<500) {
+				//关闭菜单
+				//相当于Scroller的startScroll方法
+				mViewDragHelper.smoothSlideViewTo(mMainView, 0, 0);
+				ViewCompat.postInvalidateOnAnimation(this);
+			}else{
+				//打开菜单
+				mViewDragHelper.smoothSlideViewTo(mMainView, 300, 0);
+				ViewCompat.postInvalidateOnAnimation(this);
+			}
+		}
+
+		onViewCaptured(); //用户触摸到View后回调
+		onViewDragStateChanged(); //在View拖曳状态改变时回调
+		onViewPositionChanged(); //位置改变时回调
+	}

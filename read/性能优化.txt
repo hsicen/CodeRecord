@@ -1,0 +1,64 @@
+布局优化
+1.	使用include布局（布局复用）
+2.	使用merge标签（减少层级嵌套）
+	(1)  子布局的根视图与它的父视图是同一类型的布局
+	(2) 存在多层使用同一种布局类的嵌套视图，这种情况下用merge标签作为子视图的顶级视图来解决掉多余的层级
+3.	使用ViewStub视图（延迟加载）
+	(1). ViewStub是一个不可见的和能在运行期间延迟加载目标视图的、宽高都为0的View。当对一个ViewStub调用inflate()方法或设置它为可见时，系统会加载		在ViewStub标签中指定的布局，然后将这个布局的根视图添加到ViewStub的父视图中。也就是说，在对ViewStub调用inflate()方法或设置visible之前，它是不	占用布局空间和系统资源的，它只是为一个目标视图占了一个位置而已。 
+4.	减少视图层级
+	(1). 尽量多使用RelativeLayout，不要使用绝对布局AbsoluteLayout
+	(2). 在ListView等列表组件中尽量避免使用LinearLayout的layout_weight属性
+
+内存优化
+1.	珍惜Service资源
+	(1)限制Service的最好方法是使用IntentService，它会在处理完任务后自动结束
+2.	当UI隐藏时释放内存
+	(1)实现Activity类里面的onTrimMemory()回调方法，用这个方法来监听到TRIM_MEMORY_UI_HIDE级别的回调，此时意味着UI已经隐藏。
+3.	当内存紧张时释放部分内存
+	(1)通过onTrimMemory()方法中内存级别来判断释放哪些资源
+	TRIM_MEMORY_RUNNING_MODERATE：APP正在运行，并且不会被列为可杀死的；但是，设备	此时正运行于低内存状态下，系统开始触发杀死LRU Cache		中的Process的机制
+	TRIM_MEMORY_RUNNING_LOW：APP正在运行，并且不会被列为可杀死的；但是设备运行于更低内存状态下，你应该释放不用的资源来提升系统性能
+	TRIM_MEMORY_RUNNING_CRITICAL：APP仍然在运行，但是系统已经把LRU Cache中的大多数进程都已经杀死，此时应该立即释放所有非必需的资源，不然	系统会清除所有LRU缓存中的进	程，并且开始杀死那些之前被列为不应该杀死的进程
+	TRIM_MEMORY_BACKGROUND：系统正运行于低内存状态并且你的进程正处于LRU缓存名单中最不容易杀掉的位置
+	TRIM_MEMORY_MODERATE：系统正运行于低内存状态并且你的进程已经接近名单的中部位置，你的进程是有可能被杀死的
+	TRIM_MEMORY_COMPLETE：系统正运行于低内存状态并且你的进程正处于LRU名单中最容易被杀死的位置，你应该释放任何不影响你的App恢复状态的资源
+	(2)对于低于API 14的版本，可以使用onLowMemory()回调来兼容，onLowMemory相当于TRIM_MEMORY_COMPLETE
+4.	检查你应该使用多少内存
+	(1)可以通过调用getMemoryClass()来获取你的App可用heap大小
+	(2)在特殊情况下，可以通过在manifest的application标签下添加largeHeap=true来获取一个更大的heap空间；此时通过getLargeMemoryClass()来获取到一		个更大的heap size
+5.	避免bitmaps的浪费
+6.	使用优化的数据容器，比如SparseArray
+7.	注意内存开销，比如尽量不使用enums
+8.	注意代码的抽象
+9.	为序列化的数据使用 nano protobufs
+10.	避免使用依赖注入框架
+11.	谨慎使用外部库
+12.	优化整体性能
+13.	使用ProGuard来剔除不需要的代码
+14.	对最终的apk使用zipalign
+15.	使用多进程
+
+内存泄漏
+	一个本应该销毁的对象被错误的持有，那么该对象就不会被释放掉，造成内存泄漏
+1.	使用Memory Monitor 监测内存的使用情况
+2.	使用LeakCanary检测内存泄漏
+
+性能优化
+1.	过度绘制
+	(1) 过度绘制检测，打开手机设置界面-开发者选项-GPU过度绘制-显示过度绘制区域
+	(2)没颜色-没有过度绘制；蓝色-过度绘制1次；绿色-过度绘制2次；浅红色-过度绘制3次；
+	     深红色-过度绘制4次		需要集中精力解决过度绘制大于2次的区域
+	(3)最小化过度绘制区域
+2.	Android图形渲染
+	(1) 渲染步骤：①测量(onMeasure)	②布局(onLayout)		③绘制(onDraw)
+	(2)RelativeLayout通常会对它的子视图进行两次测量，子视图使用了layout_weight属性的LinearLayout也会对它的子视图进行两次测量
+	(3)使用Hierarchy Viewer 可视化View的层级，发现冗余的View以及嵌套的布局
+		①打开AndroidStudio，选择tools-Android-AndroidDeviceMonitor，然后点击Hierarchy View；会有3个窗口提供视图层级的3个不同可视化展示：				TreeView：可视化层级窗口，每个节点代表了一个View	Tree Overview：整个视图层级的缩略布局	Layout View：当前视图层级的轮廓
+		②节点性能分析：点击Hierarchy View上由绿，红，紫组成的3个圆形色块按钮，3个圆点色块会显示在每个节点上，从左到右，这些圆点分别表示：
+		用于测量的时间，用于布局的时间，用于绘制的时间；每个圆点都有颜色：绿色代表该View的渲染速度要快于一半以上的其它参与测试的节点，
+		黄色代表该View慢于50%以上的其它节点，红色代表该View的渲染速度是所有参与测试的节点中最慢的
+3.数据采集与分析工具--TraceView
+	通过每个函数的时间消耗查找出性能瓶颈，TraceView本身只是一个数据分析工具，而数据的采集则需要使用Android的Debug类或者利用DDMS工具
+	(1)使用Debug类，那么开发人员需要在分析的代码前调用Debug类的startMethodTracing函数，并在分析代码的结束位置调用stopMethodTracing函数；然后	采集的数据保存在/mnt/sdcard/下的一个文件中，将文件复制到PC中，用TraceView打开分析数据
+	(2)或者借用AndroidSDK中的DDMS工具收集数据，再利用TraceView分析数据
+

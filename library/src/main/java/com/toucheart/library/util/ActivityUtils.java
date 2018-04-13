@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 
 /**
@@ -119,6 +120,23 @@ public class ActivityUtils {
         startActivity(context, activityClass);
         if (context != null) {
             context.overridePendingTransition(enterAnim, exitAnim);
+        }
+    }
+
+    public static void start(Context context, String packageName) {
+        if (null != packageName) {
+            try {
+                PackageManager e = context.getPackageManager();
+                Intent intent = e.getLaunchIntentForPackage(packageName);
+                String className = intent.getComponent().getClassName();
+                Intent newIntent = new Intent("android.intent.action.VIEW");
+                ComponentName cn = new ComponentName(packageName, className);
+                newIntent.setComponent(cn);
+                newIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(newIntent);
+            } catch (Exception var7) {
+                LogUtils.e(var7, "出错");
+            }
         }
     }
 }

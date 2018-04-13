@@ -1,0 +1,70 @@
+mBanner.setTransitionEffect(TransitionEffect.Cube);   设置轮播条的滚动动画
+启动引导页的实现：
+注意事项：
+	如果要添加两层，即图形和文字，需要用两个BGA-Banner，并用BGAGuideLinkageLayout来连接
+	进入界面按钮和点击跳过按钮，在BGAGuideLinkageLayout外面
+	找到控件，设置数据，然后再绑定监听器
+	在布局文件里可以给控件设置动画属性
+
+
+广告轮播页的实现：
+一、ListView添加轮播条
+	给ListView添加一个HeadView，然后给Banner设置Adapter，BGABanner.Adapter<ImageView,String>，在重写的方法里面用Glide来加载图片
+	View headerView = View.inflate(this, R.layout.layout_header, null);
+    mBanner = ((BGABanner) headerView.findViewById(R.id.banner));
+	mBanner.setAdapter(new BGABanner.Adapter<ImageView, String>() {
+            @Override
+            public void fillBannerItem(BGABanner banner, ImageView itemView, String model, int position) {
+                Glide.with(itemView.getContext())
+                        .load(model)
+                        .placeholder(R.drawable.holder)
+                        .error(R.drawable.holder)
+                        .dontAnimate()
+                        .centerCrop()
+                        .into(itemView);
+            }
+        });
+        mProductList.addHeaderView(headerView);
+	最后给Banner设置数据   mBanner.setData(bannerModel.imgs, bannerModel.tips);图片地址集合和图片描述文字集合
+	添加点击事件mBanner.setDelegate(new BGABanner.Delegate<ImageView,String>(){});
+
+
+二、给RecyclerView添加轮播条
+初始化headView，设置adapter，设置数据，给RecyclerView的adapter添加headView，添加点击事件
+可以用BGABanner的BGARecyclerViewAdapter适配器，需要传入存储数据的自定义类
+在构造方法里指定recyclerView和item的布局文件，在fillData方法里绑定数据
+private class ContentAdapter extends BGARecyclerViewAdapter<RefreshModel> {
+
+        public ContentAdapter(RecyclerView recyclerView) {
+            super(recyclerView, R.layout.item_normal);
+        }
+
+        @Override
+        protected void fillData(BGAViewHolderHelper helper, int position, RefreshModel model) {
+            helper.setText(R.id.tv_item_normal_title, model.title).setText(R.id.tv_item_normal_detail, model.detail);
+        }
+}
+
+
+三、普通的添加轮播条
+①添加和查找控件，
+②设置适配器
+③给Banner设置数据
+	如果有多个Banner时，可以封装一个方法来减少代码量，如下
+	private void loadData(final BGABanner banner, int count) {
+        mEngine.fetchItemsWithItemCount(count).enqueue(new Callback<BannerModel>() {
+            @Override
+            public void onResponse(Call<BannerModel> call, Response<BannerModel> response) {
+                BannerModel bannerModel = response.body();
+                banner.setAdapter(MainActivity.this);
+                banner.setData(bannerModel.imgs, bannerModel.tips);
+            }
+
+            @Override
+            public void onFailure(Call<BannerModel> call, Throwable t) {
+                Toast.makeText(App.getInstance(), "网络数据加载失败", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+④设置点击事件setDelegate()
