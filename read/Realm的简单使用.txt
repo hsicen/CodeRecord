@@ -1,0 +1,332 @@
+自定义类继承RealmObject
+用@Ignore可以忽略存储字段
+
+初始化
+Realm.init(this);
+        RealmConfiguration configuration = new RealmConfiguration.Builder()
+                .directory(new File(Environment.getExternalStorageDirectory().getAbsolutePath()+"/"))
+                .name("realm.db")
+                .build();
+        realm = Realm.getInstance(configuration);
+
+写入数据
+		realm.beginTransaction();
+        User user = new User("小明",23,99);
+        realm.copyToRealm(user);
+        realm.commitTransaction();
+
+读取数据
+RealmResults<User> users = realm.where(User.class).findAll();
+
+
+开始使用：
+第一步： 在项目的 build.gradle 文件中添加如下 class path 依赖。
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath "io.realm:realm-gradle-plugin:2.1.1"
+    }
+}
+
+第二步： 在 app 的 build.gradle 文件中应用 realm-android 插件。
+apply plugin: 'realm-android'
+
+第三部：Application中进行全局初始化
+Realm.init(this);
+
+第四步：创建实体类，必须继承于RealmObject
+支持public，protected，private修饰符
+支持基本数据类型和自定义类
+用@Ignore可以忽略存储字段
+用@PrimaryKey标注主键  该字段类型必须为字符串（String）或整数（short、int 或 long）以及它们的包装类型（Short、Int 或 Long）
+用@Required   告诉 Realm 强制禁止空值（null）被存储
+集合使用RealmList来存储，不用List赖存储
+
+第五步：简单的增删改查操作（可以直接在UI线程中操作）
+获取Realm实例
+RealmConfiguration configuration = new RealmConfiguration.Builder()
+                .directory(new File(Environment.getExternalStorageDirectory().getAbsolutePath()+"/"))
+                .name("realm.db")
+                .build();
+        realm = Realm.getInstance(configuration);
+可以在Application中使用单利模式获取
+private Realm  getRealmInstance(){
+        if (realm == null){
+            realm = Realm.getInstance(configuration);
+        }
+        return realm;
+    }
+BaseApp app = (BaseApp) getApplication();
+realm = app.getRealmInstance();
+
+写入操作：
+realm.executeTransaction(new Realm.Transaction(){
+            @Override
+            public void execute(Realm realm) {
+                Person  person = realm.createObject(Person.class);
+                person.setName("小明");
+                person.setAge(32);
+                person.setAssenceId(99);
+                person.setSex("男");
+
+                mText.setText("写入成功");
+            }
+        });
+
+查询操作：
+		//查找数据库中的第一个
+        Person person = realm.where(Person.class).findFirst();
+        //查询Person的数量
+        long personCount = realm.where(Person.class).count();
+        //查询指定年龄的所有Person
+        RealmResults<Person> persons = realm.where(Person.class).equalTo("name", "小明").findAll();
+        mText.setText(person.getName()+"  "+person.getSex()+"  "+person.getAssenceId()+"\n");
+        mText.append("数据库中的Person数量为："+personCount+"\n");
+        mText.append("数据库中名字为小明的Person数量为："+persons.size());
+
+更新操作：
+先查询拿到数据，然后再把数据更新写入
+final Person person = realm.where(Person.class).findFirst();
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                person.setName("小明明");
+                person.setAge(12);
+                person.setSex("女");
+
+                mText.setText("更新成功");
+            }
+        });
+
+删除数据：
+realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.delete(Person.class);
+
+                mText.setText("删除成功");
+            }
+        });
+
+关联查询：
+RealmResults<Person> results = realm.where(Person.class).equalTo("cats.name", "Tiger").findAll();
+cats.name 表示：在Person类中的cats字段，然后cats字段下的name属性
+
+第六步：复杂的增删改查操作（在单独的子线程中操作）
+排序查找：
+RealmResults<Person> sortedPersons = realm.where(Person.class).findAllSorted("age", Sort.DESCENDING);
+区间查找：
+RealmResults<Person> results = realm.where(Person.class)
+                .between("age", 7, 9)       // Notice implicit "and" operation
+                .beginsWith("name", "Person").findAll();
+
+
+第七步：在onDestroy中关闭Realm；
+realm.close();
+
+异步操作：
+realm.executeTransactionAsync(new Realm.Transaction() {
+    @Override
+    public void execute(Realm bgRealm) {
+        User user = bgRealm.createObject(User.class);
+        user.setName("John");
+        user.setEmail("john@corporation.com");
+    }
+}, new Realm.Transaction.OnSuccess() {
+    @Override
+    public void onSuccess() {
+        // Transaction was a success.
+    }
+}, new Realm.Transaction.OnError() {
+    @Override
+    public void onError(Throwable error) {
+        // Transaction failed and was automatically canceled.
+    }
+});
+
+条件查询：
+// Or alternatively do the same all at once (the "Fluent interface"):
+RealmResults<User> result2 = realm.where(User.class)
+                                  .equalTo("name", "John")
+                                  .or()
+                                  .equalTo("name", "Peter")
+                                  .findAll();
+
+除手动调用 realm.beginTransaction()、realm.commitTransaction() 和 realm.cancelTransaction() 之外
+你可以使用 realm.executeTransaction() 方法，它会自动处理写入事物的开始和提交，并在错误发生时取消写入事物。
+
+添加，修改或删除 RealmResults 中任何一个对象都必须在写入事务中完成。
+
+
+查询条件：
+between()、greaterThan()、lessThan()、greaterThanOrEqualTo() 和 lessThanOrEqualTo()
+equalTo() 和 notEqualTo()
+contains()、beginsWith() 和 endsWith()
+isNull() 和 isNotNull()
+isEmpty() 和 isNotEmpty()
+
+修饰符：
+字符串查询条件可以通过使用 Case.INSENSITIVE 修饰符来忽略字母 A-Z 和 a-z 的大小写
+
+逻辑运算符：
+你也可以将查询条件组合在一起，使用 beginGroup()（相当于左括号）和 endGroup()（相当于右括号）：
+RealmResults<User> r = realm.where(User.class)
+                            .greaterThan("age", 10)  //implicit AND
+                            .beginGroup()
+                                .equalTo("name", "Peter")
+                                .or()
+                                .contains("name", "Jo")
+                            .endGroup()
+                            .findAll();
+
+排序：
+当你执行完查询获得结果后，可以对它进行排序：
+RealmResults<User> result = realm.where(User.class).findAll();
+result = result.sort("age"); // Sort ascending
+result = result.sort("age", Sort.DESCENDING);
+
+链式查询：
+因为查询结果并不会被复制，且在查询提交时并不会被执行，你可以链式串起查询并逐步进行分类筛选
+RealmResults<Person> teenagers = realm.where(Person.class).between("age", 13, 20).findAll();
+Person firstJohn = teenagers.where().equalTo("name", "John").findFirst();
+
+查询找出所有年龄在 13 和 20 之间的 Person 并且他至少拥有一个 1 岁的 Dog
+RealmResults<Person> teensWithPups = realm.where(Person.class).between("age", 13, 20).equalTo("dogs.age", 1).findAll();
+
+
+查询结果的自动更新：
+RealmResults 是对其所包含数据的自动更新视图，这意味着它永远不需要被重新查询获取。
+数据对象的改变会在下一次 Looper 事件中被反映到相应的查询结果
+final RealmResults<Dog> puppies = realm.where(Dog.class).lessThan("age", 2).findAll();
+puppies.size(); // => 0
+
+realm.executeTransaction(new Realm.Transaction() {
+    @Override
+    void public execute(Realm realm) {
+        Dog dog = realm.createObject(Dog.class);
+        dog.setName("Fido");
+        dog.setAge(1);
+    }
+});
+
+puppies.addChangeListener(new RealmChangeListener() {
+    @Override
+    public void onChange(RealmResults<Dog> results) {
+      // results and puppies point are both up to date
+      results.size(); // => 1
+      puppies.size(); // => 1
+    }
+});
+
+可以通过订阅 Realm notifications 来得知 Realm 数据更新了，进而刷新 UI 而不必重新查询获得 RealmResults
+通知（Notifications）
+Listener 只工作于 Looper 线程。对于非 Looper 线程请使用 Realm.waitForChange()
+当后台线程向 Realm 添加数据，你的 UI 线程或者其它线程可以添加一个监听器来获取数据改变的通知。
+监听器在 Realm 数据改变的时候会被触发
+public class MyActivity extends Activity {
+    private Realm realm;
+    private RealmChangeListener realmListener;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+      super.onCreate(savedInstanceState);
+      realm = Realm.getDefaultInstance();
+      reamlListener = new RealmChangeListener<Realm>() {
+        @Override
+        public void onChange(Realm realm) {
+            // ... do something with the updates (UI, etc.) ...
+        }};
+      realm.addChangeListener(realmListener);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Remove the listener.
+        realm.removeChangeListener(realmListener);
+        // Close the Realm instance.
+        realm.close();
+    }
+}
+你可以轻松移除所有监听器：realm.removeAllChangeListeners();
+
+聚合：
+RealmResults<User> results = realm.where(User.class).findAll();
+long   sum     = results.sum("age").longValue();
+long   min     = results.min("age").longValue();
+long   max     = results.max("age").longValue();
+double average = results.average("age");
+long   matches = results.size();
+
+
+迭代：
+for循环迭代，fore循环迭代
+
+
+删除（你可以从查询结果中删除数据）
+final RealmResults<Dog> results = realm.where(Dog.class).findAll();
+
+// All changes to data must happen in a transaction
+realm.executeTransaction(new Realm.Transaction() {
+    @Override
+    public void execute(Realm realm) {
+        // remove single match
+        results.deleteFirstFromRealm();
+        results.deleteLastFromRealm();
+
+        // remove a single object
+        Dog dog = results.get(5);
+        dog.deleteFromRealm();
+
+		//删除这个类的数据
+		realm.delete(Person.class);
+
+        // Delete all matches
+        results.deleteAllFromRealm();
+    }
+});
+
+异步查询（Asynchronous Queries）
+可以使用后台线程进行查询：
+RealmResults<User> result = realm.where(User.class)
+                              .equalTo("name", "John")
+                              .or()
+                              .equalTo("name", "Peter")
+                              .findAllAsync();
+如果你希望当查询完成、RealmResults 被更新时获得通知，你可以注册一个 RealmChangeListener。
+这个监听器会在 RealmResults 被更新时被调用（通常是在事务被提交后）
+private RealmChangeListener callback = new RealmChangeListener<RealmResults<User>>() {
+    @Override
+    public void onChange(RealmResults<User> results) {
+        // called once the query complete and on every update
+    }
+};
+
+public void onStart() {
+    RealmResults<User> result = realm.where(User.class).findAllAsync();
+    result.addChangeListener(callback);
+}
+在退出 Activity 或者 Fragment 时移除监听器的注册以避免内存泄漏。
+public void onStop () {
+    result.removeChangeListener(callback); // remove a particular listener
+    // or
+    result.removeChangeListeners(); // remove all registered listeners
+}
+检查查询是否完成：
+RealmResults<User> result = realm.where(User.class).findAllAsync();
+if (result.isLoaded()) {
+  // Results are now available
+}
+
+
+可以配置多个configuration来管理不同的数据库：
+RealmConfiguration config = new RealmConfiguration.Builder()
+  .name("myrealm.realm")
+  .encryptionKey(getKey())
+  .schemaVersion(42)
+  .modules(new MySchemaModule())
+  .migration(new MyMigration())
+  .build();
+  

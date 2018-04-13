@@ -1,0 +1,66 @@
+什么事是InstanceRun：
+	传统情况下，我们修改程序后重新运行一次程序需要经历 代码重新编译 -> 停止程序 -> 重新安装 -> 重新启动 这样一个过程，
+	而Instant Run则尝试只将程序变更的部分部署到手机上，尽量避免重新安装或重新启动程序，以此大大提升调试程序的效率。
+
+	Instant Run主要分为三种类型，hot swap、warm swap和cold swap，Android Studio会根据代码的修改情况自动选择使用哪种swap类型
+
+
+Hot Swap：
+	hot swap是所有swap方式中效率最高的一种，应用程序不需要重新安装，也不需要重启就可以完成程序变更。但是hot swap不会对程序中
+	的对象进行重新初始化，也就是说可能某些场景下需要重启Activity才能看出具体的变更内容。Android Studio对于hot swap这种情况默认是重启Activity的，
+	当然你也可以到设置中去改变这一默认行为，具体路径是 Settings -> Build, Execution, Deployment -> Instant Run -> Restart activity on code changes
+	hot swap的适用条件比较少，只有一种情况会被Android Studio视为hot swap类型，就是修改一个现有方法中的代码
+
+
+Warm Swap：
+	warm swap也非常快，这种swap类型同样不需要重新安装或重启程序就可以完成程序变更，但是warm swap要求必须重启Activity。
+	你会在界面上看到屏幕很快地闪一下，同时Activity的生命周期会重新执行。
+	warm swap的适用条件也比较局限，只有一种情况会被Android Studio视为warm swap类型，就是修改或删除一个现有的资源文件
+
+
+Cold Swap：
+	cold swap相对而言就要更慢一些了，Android Studio会自动记录我们项目的每次修改，然后将修改的这部分内容打成一个dex文件发送到手机上，
+	尽管这种swap类型仍然不需要去安装一个全新的APK，但是为了加载这个新的dex文件，整个应用程序必须进行重启才行。
+	另外，cold swap的工作原理是基于multidex机制来实现的，在不引入外部library的情况下，只有5.0及以上的设备才支持multidex，
+	因此，如果你使用了5.0以下的设备，那么cold swap就无法工作了，这种情况会执行最原始的完整APK安装过程。
+	cold swap的适用条件非常多，下面我列出一个详细的清单，有哪些情况会被Android Studio视为cold swap类型：
+		添加、删除或修改一个注解
+		添加、删除或修改一个字段
+		添加、删除或修改一个方法
+		添加一个类
+		修改一个类的继承结构
+		修改一个类的接口实现
+		修改一个类的static修饰符
+		涉及资源文件id的改动
+
+Full APK：
+	改变AndroidManifest.xml文件的内容
+	改变被AndroidManifest.xml文件所引用的资源，比如string.xml中的app_name
+	改变桌面widget的UI相关元素
+
+
+Rerun：
+	如果你修改了一些只有在程序启动的时候才会初始化的代码，那么Instant Run对此也是无能为力的，因为修改的代码根本就没有执行到
+	针对这种情况，Android Studio专门提供了一个Rerun按钮
+	使用这个按钮来重新运行程序，应用程序会被强制重启，从而初始化的一些代码就能够执行到了。Android Studio无法得知改动的代码是不是在程序初始化的时候才执行的，
+	而我们却可以知道，所以确保你理解了Rerun这个按钮的作用，并在恰当的时机使用它
+
+
+hot swap由于其工作原理的限制还有一些特殊问题。hot swap会在应用程序的内部开启一个服务器，然后由Android Studio自动计算出方法内实现的变更，将变更代码发送到服务器，
+服务器再利用类加载器和委托机制将新的代码实现注入到现有应用程序中，从而完成替换工作。但是整个过程中，
+新的代码实现并没有被保存到本地，也就是说一旦设备和Android Studio的连接断掉了（比如拔掉数据线），我们使用hot swap替换的代码也就随之不见了
+
+这就说明你的hot swap代码失效了，现在的程序仍然使用的老的代码。遇到这种情况只需要将手机连上电脑，然后在Android Studio中重新运行一下程序就可以解决了。
+另外只有在debug模式下才可能会出现这个提示，release模式下是不可能出现的，所以不用担心这个提示会让用户感到困惑。
+
+
+
+
+Android冷启动白屏分析：
+	长时间白屏的问题其实和Android Studio的版本是没有关系的，而是和我们使用的gradle插件版本有关系
+
+	解决方案：
+	修改styles.xml中主题相关的代码
+	<item name="android:windowIsTranslucent">true</item>
+    <item name="android:windowNoTitle">true</item>
+	将这两个属性都设置成true，就可以让程序在初始化的时候窗口是透明的，初始化结束后程序主界面才会显示出来，从而也就完全看不到白屏界面了

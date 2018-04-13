@@ -1,0 +1,66 @@
+Lambda表达式语法：
+()	-->	5     不需要参数，返回值为5
+x	-->	2*x  接收一个参数，返回其值得2倍
+(x,y)  -->	x-y   接收2个参数，返回他们的差值
+(int x,int y) -->  接收两个int参数，返回他们的和
+(String  str)   -->  接收一个String参数，并在控制台打印
+
+
+循环集合或数组：
+	ArrayList<String>  players = new ArrayList<>();
+	players.forEach((player) -> System.out.print(player+","));
+
+使用匿名内部类：
+	btn.setOnAction(new EventHandler<ActionEvent>() {
+          @Override
+          public void handle(ActionEvent event) {
+              System.out.println("Hello World!");
+          }
+    });
+
+	btn.setOnAction((event) ->System.out.println("Hello World!") );
+
+
+实现Runnable接口：
+	new Thread(new Runnable() {
+    @Override
+    public void run() {
+        System.out.println("Hello world !");
+    }
+}).start();
+
+new Thread(() -> System.out.println("Hello world !")).start();
+
+
+使用匿名内部类实现Runnable接口
+Runnable race1 = new Runnable() {
+    @Override
+    public void run() {
+        System.out.println("Hello world !");
+    }
+};
+Runnable rece2 = () -> System.out.println("Hello world !");
+rece2.start();
+
+
+
+使用Lambda排序集合：
+String[] players = {"Rafael Nadal", "Novak Djokovic",
+    "Stanislas Wawrinka", "David Ferrer",
+    "Roger Federer", "Andy Murray",
+    "Tomas Berdych", "Juan Martin Del Potro",
+    "Richard Gasquet", "John Isner"};
+
+// 1.1 使用匿名内部类根据 name 排序 players
+Arrays.sort(players, new Comparator<String>() {
+    @Override
+    public int compare(String s1, String s2) {
+        return (s1.compareTo(s2));
+    }
+});
+Arrays.sort((String s1,String s2) -> (s1.compareTo(s2)));
+
+
+
+使用Lambda和Streams
+筛选操作，具体参见网络博客

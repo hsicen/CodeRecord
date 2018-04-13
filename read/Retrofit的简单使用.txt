@@ -1,0 +1,294 @@
+结合下面几个开源框架
+  compile 'io.reactivex:rxjava:x.y.z'
+  compile 'io.reactivex:rxandroid:1.0.1'
+
+  compile 'com.squareup.retrofit2:retrofit:2.0.2'
+  compile 'com.squareup.retrofit2:converter-gson:2.0.2'
+  compile 'com.squareup.retrofit2:adapter-rxjava:2.0.2'
+
+Retrofit的简单使用步骤：
+第一步：创建一个自己的Service接口(分解网络请求地址，用来拼接)
+public interface ITravelService {
+    @GET("api/trips/featured.json")
+    Call<List<Product>>  getInfo(@Query("page") int page);
+}
+注意：
+List<Product>是返回的对象类型  可以是Product对象，可以是其集合，主要看返回的json字符串是对象还是数组
+@Query是URL地址中？后面的参数及参数类型
+@Path是直接拼接在后面的参数及参数类型
+详情见Retrofit请求接口的定义
+@GET("users/list")     定义GET请求注解
+@GET("users/list?sort=desc")    直接把参数写在接口后面
+
+@GET("group/{id}/users")
+Call<List<User>>  groupList(@Path("id")  int  groupId);     Path注解
+
+@GET("group/{id}/users")
+Call<List<User>>  groupList(@Path("id") int groupId,@Query("sort") String sort); 混合注解
+
+@GET("group/{id}/users")
+Call<List<User>>  groupList(@Path("id") int groupId,@QueryMap Map<String,String> options);  多参数请求
+
+@POST("users/new")
+Call<User>  createUser(@Body  User  user);
+
+
+第二部：初始化Retrofit
+Retrofit  retrofit = new Retrofit.Builder()
+                .addConverterFactory(GsonConverterFactory.create())
+                .baseUrl("http://chanyouji.com/")
+                .build();
+第三部：创建Service，进行网络请求
+        ITravelService service = retrofit.create(ITravelService.class);
+
+        retrofit2.Call<List<Product>> productCall = service.getInfo(1); //创建被观察者，并进行网络请求
+        productCall.enqueue(new Callback<List<Product>>() {......response.body()获得数据.............});
+
+
+
+Retrofit和RxJava的使用步骤：
+第一步：创建一个自己的Service接口，Observable接口
+public interface ITravelService {
+    @GET("api/trips/featured.json")
+    Observable<List<Product>>  getProducts(@Query("page") int page);
+}
+
+第二部：初始化Retrofit
+Retrofit retrofit = new Retrofit.Builder()
+                .addConverterFactory(GsonConverterFactory.create())
+                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())   //新增加的功能
+                .baseUrl("http://chanyouji.com/")
+                .build();
+第三部：创建Service，进行网络请求
+ITravelService iTravelService = retrofit.create(ITravelService.class);
+
+        iTravelService.getProducts(2)           //创建被观察者，并进行网络请求,在子线程中进行
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(Schedulers.io())
+                .doOnNext(products -> {    /*可以在这里保存数据*/    })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(products -> {  productList.addAll(products);  adapter.notifyDataSetChanged();  });
+
+
+
+Retrofit和RxJava的深入使用步骤：
+在进行网络请求获取到数据时，可以通过RaJava的各种操作符实现对数据的筛选和过滤
+比如：在请求成功之后再获取请求数据中的相关数据，用FlatMap，Filter等操作符来实现
+
+请求参数的添加，可以使用map集合添加动态参数
+可以使用Intercepter添加静态参数
+@GET("api/trips/featured.json")
+    Call<List<Product>>  getInfo(@QueryMap(encoded = true)Map<String,String> options);
+
+可以在Application中初始化一个接口实例，初始化一些公有的属性，然后提供一个获取对象的方法，不用每次请求都去创建一个接口实例
+
+
+Retrofit2.0的简单使用
+1.如果要直接获取网络返回的字符串，使用ResponseBody作为参数
+@GET("sore")
+    Call<ResponseBody>  getLol();
+
+2.一个Call只能被执行一次，如果要多次执行Call对象，可以通过clone，来clone一份call，从新调用
+
+
+3.参数相关
+①固定参数查询，不需要动态添加参数，直接调用查询
+@GET("/some/endpoint?fixed=query")
+ Call<SomeResponse> someEndpoint();
+方法调用：someService.someEndpoint();
+请求头： GET /some/endpoint?fixed=query HTTP/1.1
+
+②动态参数查询，每次网络请求查询指定参数的内容
+@GET("/some/endpoint")
+ Call<SomeResponse> someEndpoint( @Query("dynamic") String dynamic);
+方法调用：someService.someEndpoint("query");
+请求头：GET /some/endpoint?dynamic=query HTTP/1.1
+
+③动态Map参数查询
+@GET("/some/endpoint")
+ Call<SomeResponse> someEndpoint(@QueryMap Map<String, String> dynamic);
+方法调用：someService.someEndpoint(Collections.singletonMap("dynamic", "query"));
+请求头：GET /some/endpoint?dynamic=query HTTP/1.1
+
+④：省略动态参数查询
+@GET("/some/endpoint")
+ Call<SomeResponse> someEndpoint(@Query("dynamic") String dynamic);
+方法调用：someService.someEndpoint(null);
+请求头：GET /some/endpoint HTTP/1.1
+
+⑤：固定+动态参数查询
+ @GET("/some/endpoint?fixed=query")
+ Call<SomeResponse> someEndpoint(@Query("dynamic") String dynamic);
+方法调用：someService.someEndpoint("query");
+请求头：GET /some/endpoint?fixed=query&dynamic=query HTTP/1.1
+
+⑥：路径替换查询
+@GET("/some/endpoint/{thing}")
+ Call<SomeResponse> someEndpoint( @Path("thing") String thing);
+方法调用：someService.someEndpoint("bar");
+请求头：GET /some/endpoint/bar HTTP/1.1
+
+⑦：固定头查询
+@GET("/some/endpoint")
+@Headers("Accept-Encoding: application/json")
+Call<SomeResponse> someEndpoint();
+方法调用：someService.someEndpoint();
+请求头：
+GET /some/endpoint HTTP/1.1
+Accept-Encoding: application/json
+
+⑧：动态头查询
+@GET("/some/endpoint")
+Call<SomeResponse> someEndpoint(@Header("Location") String location);
+方法调用：someService.someEndpoint("Droidcon NYC 2015");
+请求头：
+ GET /some/endpoint HTTP/1.1
+ Location: Droidcon NYC 2015
+
+ ⑨：固定+动态头查询
+@GET("/some/endpoint")
+@Headers("Accept-Encoding: application/json")
+Call<SomeResponse> someEndpoint(@Header("Location") String location);
+方法调用：someService.someEndpoint("Droidcon NYC 2015");
+请求头：
+ GET /some/endpoint HTTP/1.1
+ Accept-Encoding: application/json
+ Location: Droidcon NYC 2015
+
+ 10.Post请求，无Body
+ @POST("/some/endpoint")
+ Call<SomeResponse> someEndpoint();
+ 方法调用：someService.someEndpoint();
+ 请求头：POST /some/endpoint?fixed=query HTTP/1.1       Content-Length: 0
+
+ Post请求有Body
+ @POST("/some/endpoint")
+ Call<SomeResponse> someEndpoint(@Body SomeRequest body);
+ 方法调用：someService.someEndpoint();
+ 请求头：POST /some/endpoint HTTP/1.1     Content-Length: 3     Content-Type: greeting    Hi!
+
+表单编码字段
+@FormUrlEncoded
+@POST("/some/endpoint")
+Call<SomeResponse> someEndpoint( @Field("name1") String name1, @Field("name2") String name2);
+方法调用：someService.someEndpoint("value1", "value2");
+请求头：POST /some/endpoint HTTP/1.1    Content-Length: 25     Content-Type: application/x-www-form-urlencoded    name1=value1&name2=value2
+
+表单编码字段（Map）
+@FormUrlEncoded
+@POST("/some/endpoint")
+Call<SomeResponse> someEndpoint( @FieldMap Map<String, String> names);
+方法调用：
+someService.someEndpoint(
+ // ImmutableMap是OKHttp中的工具类
+ ImmutableMap.of("name1", "value1", "name2", "value2"));
+请求头：
+POST /some/endpoint HTTP/1.1
+Content-Length: 25
+Content-Type: application/x-www-form-urlencoded
+name1=value1&name2=value2
+
+动态Url(Dynamic URL parameter)
+@GET("/repos/{owner}/{repo}/contributors")
+Call<List<Contributor>> repoContributors(@Path("owner") String owner,@Path("repo") String repo);
+
+@GET
+Call<List<Contributor>> repoContributorsPaginate(@Url String url);
+
+// 调用
+Call<List<Contributor>> call = gitHubService.repoContributors("square", "retrofit");
+Response<List<Contributor>> response = call.execute();
+// 响应结果
+// HTTP/1.1 200 OK
+// Link: <https://api.github.com/repositories/892275/contributors?
+page=2>; rel="next", <https://api.github.com/repositories/892275/
+contributors?page=3>; rel="last"
+// 获取到头中的数据
+String links = response.headers().get("Link");
+String nextLink = nextFromGitHubLinks(links);
+// https://api.github.com/repositories/892275/contributors?page=2
+
+可插拔的执行机制(Multiple, pluggable execution mechanisms)
+@GET("/repos/{owner}/{repo}/contributors")
+ // Call 代表的是CallBack回调机制
+ Call<List<Contributor>> repoContributors(
+ @Path("owner") String owner,
+ @Path("repo") String repo);
+
+ @GET("/repos/{owner}/{repo}/contributors")
+ // Observable 代表的是RxJava的执行
+ Observable<List<Contributor>> repoContributors2(
+ @Path("owner") String owner,
+ @Path("repo") String repo);
+
+ @GET("/repos/{owner}/{repo}/contributors")
+ Future<List<Contributor>> repoContributors3(
+ @Path("owner") String owner,
+ @Path("repo") String repo);
+
+Retrofit retrofit = new Retrofit.Builder()
+    .addConverterFactory(GsonConverterFactory.create())
+    .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+    .baseUrl("http://www.duitang.com")
+    .build();
+
+POST
+样式1（需要补全URL，post的数据只有一条reason）
+http://102.10.10.132/api/Comments/{newsId}
+ @FormUrlEncoded
+    @POST("Comments/{newsId}")
+    Call<Comment> reportComment(
+        @Path("newsId") String commentId,
+        @Field("reason") String reason);
+
+样式2（需要补全URL，问号后加入access_token，post的数据只有一条reason）
+ @FormUrlEncoded
+ @POST("Comments/{newsId}")
+  Call<Comment> reportComment(
+        @Path("newsId") String commentId,
+        @Query("access_token") String access_token,
+        @Field("reason") String reason);
+
+样式3（需要补全URL，问号后加入access_token，post一个body（对象））
+ @POST("Comments/{newsId}")
+ Call<Comment> reportComment(
+        @Path("newsId") String commentId,
+        @Query("access_token") String access_token,
+        @Body CommentBean bean);
+
+DELETE
+样式1（需要补全URL）
+	@DELETE("Comments/{commentId}")
+    Call<ResponseBody> deleteNewsCommentFromAccount(
+        @Path("commentId") String commentId);
+
+样式2（需要补全URL，问号后加入access_token）
+@DELETE("Comments/{commentId}")
+    Call<ResponseBody> deleteNewsCommentFromAccount(
+        @Path("accountId") String accountId，
+        @Query("access_token") String access_token);
+
+PUT（这个请求很少用到，例子就写一个）
+@PUT("Accounts/{accountId}")
+    Call<ExtrasBean> updateExtras(
+        @Path("accountId") String accountId,
+        @Query("access_token") String access_token,
+        @Body ExtrasBean bean);
+
+总结
+@Path：所有在网址中的参数（URL的问号前面），如：
+http://102.10.10.132/api/Accounts/{accountId}
+@Query：URL问号后面的参数，如：
+http://102.10.10.132/api/Comments?access_token={access_token}
+@QueryMap：相当于多个@Query
+@Field：用于POST请求，提交单个数据
+@Body：相当于多个@Field，以对象的形式提交
+
+使用@Field时记得添加@FormUrlEncoded
+若需要重新定义接口地址，可以使用@Url，将地址以参数的形式传入即可
+@GET
+  Call<List<Activity>> getActivityList(
+          @Url String url,
+          @QueryMap Map<String, String> map);
+Call<List<Activity>> call = service.getActivityList(
+              "http://115.159.198.162:3001/api/ActivitySubjects", map);

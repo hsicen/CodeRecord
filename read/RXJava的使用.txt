@@ -1,0 +1,874 @@
+ compile 'io.reactivex.rxjava2:rxjava:2.0.1'
+ compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
+
+ 
+ 观察者：Observer，及其实现类Subscriber
+ 被观察者：Observable
+ 订阅：Subscribe
+
+RxJava的使用场景总结：
+场景一：
+取数据先检查缓存的场景
+取数据，首先检查内存是否有缓存
+然后检查文件缓存中是否有
+最后才从网络中取
+前面任何一个条件满足，就不会执行后面的
+final Observable<String> memory = Observable.create(new Observable.OnSubscribe<String>() {
+    @Override
+    public void call(Subscriber<? super String> subscriber) {
+        if (memoryCache != null) {
+            subscriber.onNext(memoryCache);
+        } else {
+            subscriber.onCompleted();
+        }
+    }
+});
+Observable<String> disk = Observable.create(new Observable.OnSubscribe<String>() {
+    @Override
+    public void call(Subscriber<? super String> subscriber) {
+        String cachePref = rxPreferences.getString("cache").get();
+        if (!TextUtils.isEmpty(cachePref)) {
+            subscriber.onNext(cachePref);
+        } else {
+            subscriber.onCompleted();
+        }
+    }
+});
+
+Observable<String> network = Observable.just("network");
+
+//主要就是靠concat operator来实现
+Observable.concat(memory, disk, network)
+.first()
+.subscribeOn(Schedulers.newThread())
+.subscribe(s -> {
+    memoryCache = "memory";
+    System.out.println("--------------subscribe: " + s);
+});
+
+
+界面需要等到多个接口并发取完数据，再更新：
+//拼接两个Observable的输出，不保证顺序，按照事件产生的顺序发送给订阅者
+private void testMerge() {
+    Observable<String> observable1 = DemoUtils.createObservable1().subscribeOn(Schedulers.newThread());
+    Observable<String> observable2 = DemoUtils.createObservable2().subscribeOn(Schedulers.newThread());
+
+    Observable.merge(observable1, observable2)
+            .subscribeOn(Schedulers.newThread())
+            .subscribe(System.out::println);
+}
+
+
+一个接口的请求依赖另一个API请求返回的数据：
+举个例子，我们经常在需要登陆之后，根据拿到的token去获取消息列表。
+这里用RxJava主要解决嵌套回调的问题，有一个专有名词叫Callback hell
+NetworkService.getToken("username", "password")
+    .flatMap(s -> NetworkService.getMessage(s))
+    .subscribe(s -> {
+        System.out.println("message: " + s);
+    });
+
+
+界面按钮需要防止连续点击的情况：
+RxView.clicks(findViewById(R.id.btn_throttle))
+    .throttleFirst(1, TimeUnit.SECONDS)
+    .subscribe(aVoid -> {
+        System.out.println("click");
+    });
+
+
+响应式的界面：
+比如勾选了某个checkbox，自动更新对应的preference
+SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+RxSharedPreferences rxPreferences = RxSharedPreferences.create(preferences);
+
+Preference<Boolean> checked = rxPreferences.getBoolean("checked", true);
+
+CheckBox checkBox = (CheckBox) findViewById(R.id.cb_test);
+RxCompoundButton.checkedChanges(checkBox)
+        .subscribe(checked.asAction());
+
+
+复杂的数据变换：
+Observable.just("1", "2", "2", "3", "4", "5")
+    .map(Integer::parseInt)
+    .filter(s -> s > 1)
+    .distinct()
+    .take(3)
+    .reduce((integer, integer2) -> integer.intValue() + integer2.intValue())
+    .subscribe(System.out::println);//9
+
+
+
+
+RxJava1.0的使用
+compile 'io.reactivex.rxjava2:rxjava:1.0.1'
+compile 'io.reactivex.rxjava2:rxandroid:1.0.1'
+
+简单使用：
+第一步：创建被观察者Observable
+方式一：Observable  observable = Observable.create(new Observable.OnSubscribe<T>(){xxxxxxx});
+方式二：Observable  observable = Observable.just(xxx,xxx,xxx.....);
+方式三：Observable  observable = Observable.from(arrayRes);
+
+第二步：创建观察者Subscriber
+方式一：Subscriber  subscriber = new Subscriber<T>(){xxxxxxxxxxx};
+方式二：Action1 action = new Action1<T>(){xxxxxxxxxx};
+
+第三步：订阅
+observable.subscribe(subscriber);    流式API调用风格
+
+
+综合流程：
+Observable.just(xx,xxx,xxx,xxx......)
+	.filter(new Func1<String,Boolean>(){xxxxxxxxxx})
+	.subscribe(new  Subscriber<T>(){xxxxxxxxxx});
+
+
+操作符：
+Map操作符： 可以进行类型转换，输入是一个类型，输出又是一个类型
+比如被观察者产生的事件中只有图片文件路径；,但是在观察者这里只想要bitmap,那么就需要类型变换
+xxxxxxx.map(new Func1<输入的类型,输出的类型>(){xxxxxxxxxxx})
+
+flatMap操作符：解决两层循环的问题
+查找一个学校每个班级的每个学生，并打印出来。
+.flatMap(new Func1<SingleClass, Observable<Student>>() {
+                    @Override
+                    public Observable<Student> call(SingleClass singleClass) {
+                        //将每个班级的所有学生作为一列表包装成一列Observable<Student>，将学生一个一个传递出去
+                        return Observable.from(singleClass.getStudents());
+                    }
+                })
+
+异步（线程调度）
+随意切换代码执行的线程环境：
+ Observable.just(getFilePath())
+           //指定在新线程中创建被观察者
+          .subscribeOn(Schedulers.newThread())
+          //将接下来执行的线程环境指定为io线程
+          .observeOn(Schedulers.io())
+            //map就处在io线程
+          .map(mMapOperater)
+            //将后面执行的线程环境切换为主线程，
+            //但是这一句依然执行在io线程
+          .observeOn(AndroidSchedulers.mainThread())
+          //指定线程无效，但这句代码本身执行在主线程
+          .subscribeOn(Schedulers.io())
+          //执行在主线程
+          .subscribe(mSubscriber);
+实际上线程调度只有subscribeOn（）和observeOn（）两个方法
+subscribeOn（）它指示Observable在一个指定的调度器上创建（只作用于被观察者创建阶段）。只能指定一次，如果指定多次则以第一次为准
+observeOn（）指定在事件传递（加工变换）和最终被处理（观察者）的发生在哪一个调度器。可指定多次，每次指定完都在下一步生效
+
+
+Merge操作符：两个任务并发执行，任务结束之后再更新数据
+Observable  observable1 = Observable.create(xxxxxxxx)
+		.subscribeOn(Schedulers.newThread());
+Observable  observable2 = Observable.create(xxxxxxxx)
+		.subscribeOn(Schedulers.newThread());
+Observable.merge(observable1,observable2)
+		.observeOn(AndroidSchedulers.mainThread())
+		.subscribe(new Subscriber<T>(){xxxxxxxxxxxxxx});
+
+RxBinding操作：基于RxJava的对于Android原生组件的绑定，当于代替了OnClick,Listener这些东西
+RxTextView.textChange(tv_input)
+		.debounce(500,TextUtils.SECONDS)
+		.observeOn()..............
+RxView.clicks(btn_throttle)
+		.throttleFirst(500,TextUtils.SECONDS)
+		.subscribe()xxxxxxxxxxxxxx
+
+Filter操作符：筛选操作符
+过滤掉一些不想要观察的事件
+xxxx.filter(new Func1<输入的类型，Boolean>{xxxxxxxxx})
+
+Take操作符：可以获取指定位置的事件
+doOnNext操作在OnNext操作之前执行，take,takeFirst,takeLast操作
+xxxx.take(4)   获取前四个
+		.takeLast(2)   获取后两个
+		.doOnNext()
+		.xxxxxxxxxxxxx
+
+Interval操作符：定时操作
+interval操作符可以设置一个定时任务(异步的)
+subscription = Observable.interval(1,TextUtils.SECONDS)   //每隔一秒发送一次任务
+			.observeOn(AndroidSchedulers.mainThread())
+			.subscribe(xxxxxxxxx);
+subscription.unsubscribe();   取消订阅
+
+
+sorted排序操作符
+xxxx.toSortedList()
+		.xxxxxxxx
+
+Connect操作符：
+在Connect模式下观察者会同时收到被观察者发送的事件
+ConnectableObservable observable= Observable.from(integer)
+                .publish();//将一个Observable转换为一个可连接的Observable
+
+        Action1 a1=new Action1<Integer>(){
+            @Override
+            public void call(Integer o) {
+                tvContent.append("观察者A  收到:  "+o+"\n");
+            }
+        };
+        Action1 a2=new Action1<Integer>(){
+            @Override
+            public void call(Integer o) {
+                tvContent.append("观察者B  收到:  "+o+"\n");
+            }
+        };
+
+        observable.subscribe(a1);
+        observable.subscribe(a2);
+        observable.connect();
+
+TimeStamp操作符：
+		xxx.timestamp()
+			.xxxxxxx
+
+
+背压：
+背压是流速控制的一种策略
+需要强调两点：
+1.背压策略的一个前提是异步环境，也就是说，被观察者和观察者处在不同的线程环境中。
+2.背压（Backpressure）并不是一个像flatMap一样可以在程序中直接使用的操作符，他只是一种控制事件流速的策略
+响应式拉取数据（reactive pull）：
+观察者可以根据自身实际情况按需拉取数据，而不是被动接收（也就相当于告诉上游观察者把速度慢下来），最终实现了上游被观察者发送事件的速度的控制
+//被观察者将产生100000个事件
+Observable observable=Observable.range(1,100000);
+class MySubscriber extends Subscriber<T> {
+    @Override
+    public void onStart() {
+    //一定要在onStart中通知被观察者先发送一个事件
+      request(1);
+    }
+
+    @Override
+    public void onCompleted() {
+        ...
+    }
+
+    @Override
+    public void onError(Throwable e) {
+        ...
+    }
+
+    @Override
+    public void onNext(T n) {
+        ...
+        //处理完毕之后，在通知被观察者发送下一个事件
+        request(1);
+    }
+}
+
+observable.observeOn(Schedulers.newThread())
+            .subscribe(MySubscriber);
+在代码中，传递事件开始前的onstart()中，调用了request(1)，通知被观察者先发送一个事件，
+然后在onNext()中处理完事件，再次调用request(1)，通知被观察者发送下一个事件....
+在上面的代码中，你也可以不需要调用request(n)方法去拉取数据，程序依然能完美运行，这是因为range --> observeOn,这一段中间过程本身就是响应式拉取数据，
+observeOn这个操作符内部有一个缓冲区，Android环境下长度是16，它会告诉range最多发送16个事件，充满缓冲区即可
+
+Hot and Cold Observables：
+Cold Observables：指的是那些在订阅之后才开始发送事件的Observable（每个Subscriber都能接收到完整的事件）
+Hot Observables:指的是那些在创建了Observable之后，（不管是否订阅）就开始发送事件的Observable
+
+流速控制相关的操作符
+过滤（抛弃）
+Sample，ThrottleFirst...........
+Observable.interval(1, TimeUnit.MILLISECONDS)
+                .observeOn(Schedulers.newThread())
+                //这个操作符简单理解就是每隔200ms发送里时间点最近那个事件，
+                //其他的事件浪费掉
+                  .sample(200,TimeUnit.MILLISECONDS)
+                  .subscribe(new Action1() {
+                      @Override
+                      public void call(Long aLong) {
+                          try {
+                              Thread.sleep(200);
+                          } catch (InterruptedException e) {
+                              e.printStackTrace();
+                          }
+                          Log.w("TAG","---->"+aLong);
+                      }
+                  });
+缓存
+buffer，window........
+Observable.interval(1, TimeUnit.MILLISECONDS)
+                .observeOn(Schedulers.newThread())
+                //这个操作符简单理解就是把100毫秒内的事件打包成list发送
+                .buffer(100,TimeUnit.MILLISECONDS)
+                  .subscribe(new Action1>() {
+                      @Override
+                      public void call(List aLong) {
+                          try {
+                              Thread.sleep(1000);
+                          } catch (InterruptedException e) {
+                              e.printStackTrace();
+                          }
+                          Log.w("TAG","---->"+aLong.size());
+                      }
+                  });
+
+两个特殊操作符
+对于不支持背压的Observable除了使用上述两类生硬的操作符之外，还有更好的选择：onBackpressurebuffer，onBackpressureDrop。
+onBackpressurebuffer：把observable发送出来的事件做缓存，当request方法被调用的时候，
+给下层流发送一个item(如果给这个缓存区设置了大小，那么超过了这个大小就会抛出异常)
+
+onBackpressureDrop：将observable发送的事件抛弃掉，直到subscriber再次调用request（n）方法的时候，就发送给它这之后的n个事件
+ Observable.interval(1, TimeUnit.MILLISECONDS)
+                .onBackpressureDrop()
+                .observeOn(Schedulers.newThread())
+               .subscribe(new Subscriber() {
+
+                    @Override
+                    public void onStart() {
+                        Log.w("TAG","start");
+//                        request(1);
+                    }
+
+                    @Override
+                      public void onCompleted() {
+
+                      }
+                      @Override
+                      public void onError(Throwable e) {
+                            Log.e("ERROR",e.toString());
+                      }
+
+                      @Override
+                      public void onNext(Long aLong) {
+                          Log.w("TAG","---->"+aLong);
+                          try {
+                              Thread.sleep(100);
+                          } catch (InterruptedException e) {
+                              e.printStackTrace();
+                          }
+                      }
+                  });
+
+
+RxJava2.0的使用
+Android端使用RxJava需要依赖新的包名：
+    //RxJava的依赖包（我使用的最新版本）
+    compile 'io.reactivex.rxjava2:rxjava:2.0.1'
+    //RxAndroid的依赖包
+    compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
+
+此次更新中，出现了两种观察者模式：
+Observeable(被观察者)/Observer（观察者）
+Flowable(被观察者)/Subscriber(观察者)
+
+Observable/Observer的用法
+Observable.create(new ObservableOnSubscribe<String>() {
+            @Override
+            public void subscribe(ObservableEmitter<String> e) throws Exception {
+                e.onNext("Hello");
+                e.onNext("Hello");
+                e.onNext("Hello");
+                e.onNext("Hello");
+                e.onComplete();
+            } })
+                .subscribe(new Observer<String>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+						//这是新加入的方法，在订阅后发送数据之前，
+						//回首先调用这个方法，而Disposable可用于取消订阅
+                    }
+
+                    @Override
+                    public void onNext(String value) {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+
+Flowable/Subscriber
+Flowable.range(0,10)
+        .subscribe(new Subscriber<Integer>() {
+            Subscription sub;
+            //当订阅后，会首先调用这个方法，其实就相当于onStart()，
+            //传入的Subscription s参数可以用于请求数据或者取消订阅
+            @Override
+            public void onSubscribe(Subscription s) {
+                Log.w("TAG","onsubscribe start");
+                sub=s;
+                sub.request(1);
+                Log.w("TAG","onsubscribe end");
+            }
+
+            @Override
+            public void onNext(Integer o) {
+                Log.w("TAG","onNext--->"+o);
+                sub.request(1);
+            }
+            @Override
+            public void onError(Throwable t) {
+                t.printStackTrace();
+            }
+            @Override
+            public void onComplete() {
+                Log.w("TAG","onComplete");
+            }
+        });
+create方式创建：
+Flowable.create(new FlowableOnSubscribe<Integer>() {
+            @Override
+            public void subscribe(FlowableEmitter<Integer> e) throws Exception {
+                e.onNext(1);
+                e.onNext(2);
+                e.onNext(3);
+                e.onNext(4);
+                e.onComplete();
+            }
+        }
+        //需要指定背压策略
+        , BackpressureStrategy.BUFFER)
+		.subscribe(xxxxxxx);
+
+其它观察者模式：
+Single/SingleObserver
+Completable/CompletableObserver
+Maybe/MaybeObserver
+
+Maybe.just(isLogin())
+    //可能涉及到IO操作，放在子线程
+    .subscribeOn(Schedulers.newThread())
+    //取回结果传到主线程
+    .observeOn(AndroidSchedulers.mainThread())
+    .subscribe(new MaybeObserver<Boolean>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+
+            }
+
+            @Override
+            public void onSuccess(Boolean value) {
+                if(value){
+                    ...
+                }else{
+                    ...
+                }
+            }
+
+            @Override
+            public void onError(Throwable e) {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        });
+这种观察者模式并不用于发送大量数据，而是发送单个数据，也就是说，当你
+只想要某个事件的结果（true or false)的时候，你可以用这种观察者模式
+
+Action相关
+Action1--------Action
+Action1--------Consumer
+Action2--------BiConsumer
+后面的Action都去掉了，只保留了ActionN
+
+Function相关
+同上，也是命名方式的改变
+
+doOnCancel/doOnDispose/unsubscribeOn
+Flowable.just(1, 2, 3)
+.doOnCancel(() -> System.out.println("Cancelled!"))
+.take(2)
+.subscribe(System.out::println);
+
+
+interval：
+interval 作为创建型的操作符，具备间隔一段时间发送数据的能力，是我们写其他操作符的基础
+Observable.interval(100, TimeUnit.MILLISECONDS, mTestScheduler)
+         .subscribe(mList::add);
+range 、just 、repeat 等创建型的操作符均可按照这种方式实现弹珠图
+
+delay：
+delay 是工具类型的操作符，可以对数据流进行延时发送。
+Observable.just(1, 2, 1)
+         .delay(3000, TimeUnit.SECONDS, mTestScheduler)
+         .subscribe(mList::add);
+
+amb：
+amb 是条件型的操作符（Conditional Operators），满足一定的条件数据流才会开始发送，而 amb 需要满足的条件便是：多个数据流中最早
+产生数据的数据流进行发送
+Observable<Integer> o1 = Observable.just(20, 40, 60)
+         .delay(500, TimeUnit.SECONDS, mTestScheduler);
+
+ Observable<Integer> o2 = Observable.just(1, 2, 3)
+         .delay(200, TimeUnit.SECONDS, mTestScheduler);
+
+ Observable<Integer> o3 = Observable.just(0, 0, 0)
+         .delay(1000, TimeUnit.SECONDS, mTestScheduler);
+
+ Observable.amb(o1, o2, o3)
+         .subscribe(mList::add);
+
+ mTestScheduler.advanceTimeBy(1000, TimeUnit.SECONDS);
+ assertEquals(mList, Arrays.asList(1, 2, 3));
+
+buffer：
+buffer 是转换型的操作符，他可以将单个数据缓存起来，批量发送，发送的数据类型是 List
+Observable.just(1, 2, 3, 4, 5, 6)
+            .buffer(3)
+            .subscribe(mList::add);
+
+    System.out.println(mList);
+    List<List<Integer>> exceptList = Arrays.asList(Arrays.asList(1, 2, 3),
+            Arrays.asList(4, 5, 6));
+    assertEquals(mList, exceptList);
+
+flatMap 和 concatMap：
+转换型的操作符：flatMap 和 concatMap
+Observable.just(1, 2, 3)
+            .flatMap((Func1<Integer, Observable<?>>) num -> Observable.interval(num - 1,
+                    TimeUnit.SECONDS, mTestScheduler)
+                    .take(2)
+                    .map(value -> num + "◇"))
+            .subscribe(mList::add);
+
+debounce：
+debounce 是过滤型的操作符，所以会按一定的规则过滤数据流。这个规则是：Observable每产生一个结果后，如果在规定的间
+隔时间内没有别的结果产生，则把这个结果提交给订阅者处理，否则忽略该结果
+Observable.create(new Observable.OnSubscribe<Integer>() {
+        @Override
+        public void call(Subscriber<? super Integer> subscriber) {
+            subscriber.onNext(1);
+            OperatorUtils.sleep(500);
+
+            subscriber.onNext(2);
+            subscriber.onNext(3);
+            subscriber.onNext(4);
+            subscriber.onNext(5);
+
+            OperatorUtils.sleep(500);
+            subscriber.onNext(6);
+            subscriber.onCompleted();
+        }
+    })
+            .subscribeOn(mTestScheduler)
+            .doOnNext(System.out::println)
+            .debounce(400, TimeUnit.MILLISECONDS)
+            .subscribe(mList::add);
+
+merge：
+merge 是聚合型的操作符。既然是聚合，因此需要2条以上的数据流，聚合之后，输出一条全新的数据流
+Observable<Long> observable1 = Observable.interval(5, TimeUnit.SECONDS, mTestScheduler)
+            .take(5)
+            .map(aLong -> (aLong + 1) * 20)
+            .doOnNext(System.out::println);
+
+    Observable<Long> observable2 = Observable.interval(18, TimeUnit.SECONDS, mTestScheduler)
+            .take(2)
+            .map(aLong -> 1L)
+            .doOnNext(System.out::println);
+
+    Observable.merge(observable1, observable2).subscribe(mList::add);
+
+
+
+线程控制：Scheduler
+Scheduler ——调度器，相当于线程控制器，RxJava 通过它来指定每一段代码应该运行在什么样的线程。
+Schedulers.immediate(): 直接在当前线程运行，相当于不指定线程。这是默认的 Scheduler。
+Schedulers.newThread(): 总是启用新线程，并在新线程执行操作。
+Schedulers.io(): I/O 操作（读写文件、读写数据库、网络信息交互等）所使用的 Scheduler。
+       行为模式和 newThread() 差不多，区别在于 io() 的内部实现是是用一个无数量上限的线程池，可以重用空闲的线程，
+	   因此多数情况下 io() 比 newThread() 更有效率。不要把计算工作放在 io() 中，可以避免创建不必要的线程。
+Schedulers.computation(): 计算所使用的 Scheduler。这个计算指的是 CPU 密集型计算，即不会被 I/O 等操作限制性能的操作，
+       例如图形的计算。这个 Scheduler 使用的固定的线程池，大小为 CPU 核数。不要把 I/O 操作放在 computation() 中，
+	   否则 I/O 操作的等待时间会浪费 CPU。
+Android 还有一个专用的 AndroidSchedulers.mainThread()，它指定的操作将在 Android 主线程运行
+
+可以使用 subscribeOn() 和 observeOn() 两个方法来对线程进行控制了。
+* subscribeOn(): 指定 subscribe() 所发生的线程，即 Observable.OnSubscribe 被激活时所处的线程。或者叫做事件产生的线程。
+* observeOn(): 指定 Subscriber 所运行在的线程。或者叫做事件消费的线程。
+
+Observable.just(1, 2, 3, 4)
+    .subscribeOn(Schedulers.io()) // 指定 subscribe() 发生在 IO 线程
+    .observeOn(AndroidSchedulers.mainThread()) // 指定 Subscriber 的回调发生在主线程
+    .subscribe(new Action1<Integer>() {
+        @Override
+        public void call(Integer number) {
+            Log.d(tag, "number:" + number);
+        }
+    });
+
+Observable.just(1, 2, 3, 4) // IO 线程，由 subscribeOn() 指定
+    .subscribeOn(Schedulers.io())
+    .observeOn(Schedulers.newThread())
+    .map(mapOperator) // 新线程，由 observeOn() 指定
+    .observeOn(Schedulers.io())
+    .map(mapOperator2) // IO 线程，由 observeOn() 指定
+    .observeOn(AndroidSchedulers.mainThread)
+    .subscribe(subscriber);  // Android 主线程，由 observeOn() 指定
+通过 observeOn() 的多次调用，程序实现了线程的多次切换。
+subscribeOn() 的位置放在哪里都可以，但它是只能调用一次的。 当使用了多个 subscribeOn() 的时候，只有第一个 subscribeOn() 起作用。
+
+
+
+
+变换
+Map:
+Observable.just("images/logo.png") // 输入类型 String
+    .map(new Func1<String, Bitmap>() {
+        @Override
+        public Bitmap call(String filePath) { // 参数类型 String
+            return getBitmapFromPath(filePath); // 返回类型 Bitmap
+        }
+    })
+    .subscribe(new Action1<Bitmap>() {
+        @Override
+        public void call(Bitmap bitmap) { // 参数类型 Bitmap
+            showBitmap(bitmap);
+        }
+    });
+map() 方法将参数中的 String 对象转换成一个 Bitmap 对象后返回
+
+flatMap():
+Observable.from(students)
+    .map(new Func1<Student, String>() {
+        @Override
+        public String call(Student student) {
+            return student.getName();
+        }
+    })
+    .subscribe(subscriber);
+
+Subscriber<Student> subscriber = new Subscriber<Student>() {
+    @Override
+    public void onNext(Student student) {
+        List<Course> courses = student.getCourses();
+        for (int i = 0; i < courses.size(); i++) {
+            Course course = courses.get(i);
+            Log.d(tag, course.getName());
+        }
+    }
+    ...
+};
+Observable.from(students)
+    .subscribe(subscriber);
+
+Observable.from(students)
+    .flatMap(new Func1<Student, Observable<Course>>() {
+        @Override
+        public Observable<Course> call(Student student) {
+            return Observable.from(student.getCourses());
+        }
+    })
+    .subscribe(subscriber);
+flatMap() 也常用于嵌套的异步操作，例如嵌套的网络请求。
+networkClient.token() // 返回 Observable<String>，在订阅时请求 token，并在响应后发送 token
+    .flatMap(new Func1<String, Observable<Messages>>() {
+        @Override
+        public Observable<Messages> call(String token) {
+            // 返回 Observable<Messages>，在订阅时请求消息列表，并在响应后发送请求到的消息列表
+            return networkClient.messages();
+        }
+    })
+    .subscribe(new Action1<Messages>() {
+        @Override
+        public void call(Messages messages) {
+            // 处理显示消息列表
+            showMessages(messages);
+        }
+    });
+
+
+变换的原理：lift()
+实质上都是针对事件序列的处理和再发送
+Observable.create(new Observable.OnSubscribe<Integer>() {
+            @Override
+            public void call(Subscriber<? super Integer> subscriber) {
+                subscriber.onNext(1);
+                subscriber.onNext(2);
+                subscriber.onNext(3);
+                subscriber.onNext(4);
+                subscriber.onCompleted();
+            }
+        })
+                .lift(new Observable.Operator<String, Integer>() {
+                    @Override
+                    public Subscriber<? super Integer> call(final Subscriber<? super String> subscriber) {
+                        return new Subscriber<Integer>() {
+                            @Override
+                            public void onCompleted() {
+                               subscriber.onCompleted();
+                            }
+
+                            @Override
+                            public void onError(Throwable e) {
+                                subscriber.onError(e);
+                            }
+
+                            @Override
+                            public void onNext(Integer integer) {
+                                subscriber.onNext("这是数字"+integer);
+                            }
+                        };
+                    }
+                })
+                .subscribe(new Action1<String>() {
+                    @Override
+                    public void call(String s) {
+                        Log.e(TAG, "call: "+s);
+                    }
+                });
+讲述 lift() 的原理只是为了让你更好地了解 RxJava ，从而可以更好地使用它。然而不管你是否理解了 lift() 的原理，
+RxJava 都不建议开发者自定义 Operator 来直接使用 lift()，而是建议尽量使用已有的 lift() 包装方法（如 map() flatMap() 等）进行组合来实现需求，
+因为直接使用 lift() 非常容易发生一些难以发现的错误。
+
+
+compose: 对 Observable 整体的变换
+
+
+延伸：doOnSubscribe()
+Observable.doOnSubscribe() 。它和 Subscriber.onStart() 同样是在 subscribe() 调用后而且在事件发送前执行，但区别在于它可以指定线程。
+默认情况下， doOnSubscribe() 执行在 subscribe() 发生的线程；而如果在 doOnSubscribe() 之后有 subscribeOn() 的话，它将执行在离它最近的 subscribeOn() 所指定的线程。
+Observable.create(onSubscribe)
+    .subscribeOn(Schedulers.io())
+    .doOnSubscribe(new Action0() {
+        @Override
+        public void call() {
+            progressBar.setVisibility(View.VISIBLE); // 需要在主线程执行
+        }
+    })
+    .subscribeOn(AndroidSchedulers.mainThread()) // 指定主线程
+    .observeOn(AndroidSchedulers.mainThread())
+    .subscribe(subscriber);
+如上，在 doOnSubscribe()的后面跟一个 subscribeOn() ，就能指定准备工作的线程了。
+
+
+
+RxJava 的适用场景和使用方式
+1. 与 Retrofit 的结合
+使用Retrofit 的传统 API，你可以用这样的方式来定义请求：
+@GET("/user")
+public void getUser(@Query("userId") String userId, Callback<User> callback);
+
+getUser(userId, new Callback<User>() {
+    @Override
+    public void success(User user) {
+        userView.setUser(user);
+    }
+
+    @Override
+    public void failure(RetrofitError error) {
+        // Error handling
+        ...
+    }
+};
+
+使用 RxJava 形式的 API，定义同样的请求是这样的：
+@GET("/user")
+public Observable<User> getUser(@Query("userId") String userId);
+
+getUser(userId)
+    .observeOn(AndroidSchedulers.mainThread())
+    .subscribe(new Observer<User>() {
+        @Override
+        public void onNext(User user) {
+            userView.setUser(user);
+        }
+
+        @Override
+        public void onCompleted() {
+        }
+
+        @Override
+        public void onError(Throwable error) {
+            // Error handling
+            ...
+        }
+    });
+
+getUser(userId)
+    .doOnNext(new Action1<User>() {
+        @Override
+        public void call(User user) {
+            processUser(user);
+        })
+    .observeOn(AndroidSchedulers.mainThread())
+    .subscribe(new Observer<User>() {
+        @Override
+        public void onNext(User user) {
+            userView.setUser(user);
+        }
+
+        @Override
+        public void onCompleted() {
+        }
+
+        @Override
+        public void onError(Throwable error) {
+            // Error handling
+            ...
+        }
+    });
+
+假设 /user 接口并不能直接访问，而需要填入一个在线获取的 token ，代码应该怎么写？
+@GET("/token")
+public Observable<String> getToken();
+
+@GET("/user")
+public Observable<User> getUser(@Query("token") String token, @Query("userId") String userId);
+
+...
+
+getToken()
+    .flatMap(new Func1<String, Observable<User>>() {
+        @Override
+        public Observable<User> onNext(String token) {
+            return getUser(token, userId);
+        })
+    .observeOn(AndroidSchedulers.mainThread())
+    .subscribe(new Observer<User>() {
+        @Override
+        public void onNext(User user) {
+            userView.setUser(user);
+        }
+
+        @Override
+        public void onCompleted() {
+        }
+
+        @Override
+        public void onError(Throwable error) {
+            // Error handling
+            ...
+        }
+    });
+
+2. RxBinding
+RxBinding 是 Jake Wharton 的一个开源库，它提供了一套在 Android 平台上的基于 RxJava 的 Binding API。
+所谓 Binding，就是类似设置 OnClickListener 、设置 TextWatcher 这样的注册绑定对象的 API。
+举个设置点击监听的例子。使用 RxBinding ，可以把事件监听用这样的方法来设置：
+Button button = ...;
+RxView.clickEvents(button) // 以 Observable 形式来反馈点击事件
+    .subscribe(new Action1<ViewClickEvent>() {
+        @Override
+        public void call(ViewClickEvent event) {
+            // Click handling
+        }
+    });
+用于去抖动，也就是消除手抖导致的快速连环点击：
+RxView.clickEvents(button)
+    .throttleFirst(500, TimeUnit.MILLISECONDS)
+    .subscribe(clickAction);
+
+
+3. 各种异步操作
+如果你有某些异步操作无法用这些库来自动生成 Observable，也完全可以自己写。
+例如数据库的读写、大图片的载入、文件压缩/解压等各种需要放在后台工作的耗时操作，都可以用 RxJava 来实现，
+有了之前几章的例子，这里应该不用再举例了。

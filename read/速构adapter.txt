@@ -1,0 +1,40 @@
+Android速构adapter神器   PacficAdapter
+https://github.com/ThePacific/adapter
+
+RecyclerAdapterHelper and RecyclerAdapter for RecyclerView
+AdapterHelper and Adapter for ListView and GridView
+ExpandableAdapterHelper and ExpandableAdapter for ExpandableListView
+ViewPagerAdapter, FragmentPagerAdapter2, and FragmentStatePagerAdapter2 for ViewPager
+onEmptyData() and onHasData() callback, when data size is 0. Use to display and hide empty tip view.
+Dependencies：
+compile 'com.github.bumptech.glide:glide:3.7.0'
+compile 'com.android.support:recyclerview-v7:24.2.1'
+
+注意：是通过adapter.addAll()来添加的数据，不需要再用List集合添加数据然后再刷新适配器
+			adapter.clear()来清除数据
+
+
+
+可以快速构建adapter
+private Adapter<Product> adapter;
+
+adapter = new Adapter<Product>(this, R.layout.layout_product_item){
+            @Override
+            protected void convert(AdapterHelper helper, Product item) {
+                helper.setText(R.id.iv_destination,item.name)
+                            .setText(R.id.iv_startDate,item.start_date)
+                            .setText(R.id.iv_endDate,item.end_date)
+                            .setText(R.id.iv_lastDate,item.days+"天")
+                            .setImageUrl(R.id.iv_product,item.front_cover_photo_url)
+                            .getItemView().setOnClickListener(v -> Toast.makeText(MainActivity.this, "你点击的是第" + helper.getPosition() + "按钮", Toast.LENGTH_SHORT).show());
+            }
+        };
+        mProductList.setAdapter(adapter);
+
+使用多布局时，在创建adapter时要传入多个布局的id，然后还要重写getItemViewType和getLayoutResourceId这两个方法
+在convert方法里，通过helper.getPosition方法，判断position来区分不同的布局，绑定数据
+
+
+
+https://github.com/hongyangAndroid/baseAdapter
+洪洋的万能适配器

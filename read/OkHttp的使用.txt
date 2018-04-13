@@ -1,0 +1,119 @@
+注意全类只创建一个Client即可，创建不同的Request请求对象
+
+一、简单的使用
+GET请求：
+	①创建一个Client对象
+		OkHttpClient  client = new  OkHttpClient();
+	②创建一个请求
+		final Request  request = new Request.Builder()
+									.url(urlPath)
+									.build();
+	③创建一个Call对象
+		Call  call = client.newCall(request);
+	④进行网络请求(异步任务的请求)
+		call.enqueue(new Callback(){
+			onFailure();
+			onResponse(){
+			String  str = response.body().string();
+			byte[]  bs = response.body().byte();
+			InputStream in = response.body().byteStream();  };
+		});
+	如果需要操作控件，需要将线程回抛到主线程
+	也可以通过阻塞的方式请求网络数据,即调用call.execute()方法,返回一个response
+
+
+POST请求(携带参数)
+	OkHttpClient  client = new  OkHttpClient();
+	RequestBody  body = new FormBody.Build()
+							.add(key,value)
+							.add(key,value)
+							........
+							.build();
+	Request  request = new Request.Builder()
+				.url(urlPath)
+				.post(body)
+				.build();
+	client.newCall(request).enqueue(new Callback(){
+		onFailure();
+		onResponse(){
+		String  str = response.body().string();
+		byte[]  bs = response.body().byte();
+		InputStream in = response.body().byteStream();  };
+	});
+
+
+上传文件
+	定义一个文件类型
+	private static final MediaType MEDIA_TYPE_MARKDOWN =
+												MediaType.parse("text/x-markdown;charset=utf-8");
+	指定文件位置
+	File  file = new File(.......);
+	创建请求
+	Request  fileRequest = new Request.Builder()
+			.url(urlPath)
+			.post(RequestBody.create(MEDIA_TYPE_MARKDOWN,file))
+			.build();
+	请求网络
+	client.newCall(fileRequest).enqueue(new Callback(){
+		onFailure();
+		onResponse(){
+		String  str = response.body().string();
+		byte[]  bs = response.body().byte();
+		InputStream in = response.body().byteStream();  };
+	});
+
+
+文件下载
+	和GET请求方式一样，只是要把返回的数据写入文件
+
+
+异步上传MultPart文件
+	定义上传文件的类型：
+	private static final MediaType MEDIA_TYPE_PNG = MediaType.parse("image/png");
+	定义请求体：
+	 RequestBody requestBody = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("title","wangshu")
+                .addFormDataPart("image","wangshu.jpg",RequestBody.create(MEDIA_TYPE_PNG,new File("/sdcard/wangshu.jpg")))
+                .build();
+	创建一个请求：
+	Request  multRequest = new Request.Builder()
+                .header("Authorization","Client-ID")
+                .url(netUrl)
+                .post(requestBody)
+                .build();
+	请求网络：
+	client.newCall(multRequest).enqueue(new Callback(){
+		onFailure();
+		onResponse(){
+		String  str = response.body().string();
+		byte[]  bs = response.body().byte();
+		InputStream in = response.body().byteStream();  };
+	});
+
+
+设置超时时间和缓存目录与大小
+	int  cacheSize = 10*1024*1024;
+        OkHttpClient  httpClient = new OkHttpClient.Builder()
+                .connectTimeout(5, TimeUnit.SECONDS)
+                .writeTimeout(10,TimeUnit.SECONDS)
+                .readTimeout(10,TimeUnit.SECONDS)
+                .cache(new Cache(Environment.getExternalStorageDirectory().getAbsoluteFile(),cacheSize))
+                .build();
+
+
+取消请求
+	call.cancel();
+
+
+OkHttpFinal框架的使用
+https://github.com/pengjianbo/OkHttpFinal
+
+OkHttpUtils框架的使用
+对OkHttp的封装，使请求更加简单
+https://github.com/zhanghongyang/OkHttpUtils
+
+
+OkHttp-OkGo框架的使用
+https://github.com/MallocJoy/okhttp-OkGo
+支持RxJava，比Retrofit更好用

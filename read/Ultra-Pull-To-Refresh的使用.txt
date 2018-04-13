@@ -1,0 +1,100 @@
+基本使用：
+第一步：添加PtrClassicFrameLayout,查找控件
+第二步：设置常用配置
+// the following are default settings
+mPtrFrame.setResistance(1.7f);
+mPtrFrame.setRatioOfHeaderHeightToRefresh(1.2f);
+mPtrFrame.setDurationToClose(200);
+mPtrFrame.setDurationToCloseHeader(1000);
+// default is false
+mPtrFrame.setPullToRefresh(false);
+// default is true
+mPtrFrame.setKeepHeaderWhenRefresh(true);
+第三步：处理下拉刷新动作
+mPtrFrame.setPtrHandler(new PtrHandler(){
+	@Override
+    public void onRefreshBegin(PtrFrameLayout frame) {
+        frame.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+				//在里面加载数据,然后通知适配器更新
+				loadData();
+                ptrFrame.refreshComplete();
+            }
+        }, 1800);
+    }
+
+    @Override
+    public boolean checkCanDoRefresh(PtrFrameLayout frame, View content, View header) {
+        // 默认实现，根据实际情况做改动
+        return PtrDefaultHandler.checkContentCanBePulledDown(frame, content, header);
+    }
+});
+
+其他功能：
+mPtrFrame.setLastUpdateTimeRelateObject(this);   记录上次加载的时间
+
+添加StoreHourseHeader风格
+第一步:添加PtrFrameLayout控件，设置默认属性
+第二步：查找控件，设置默认属性
+第三步：初始化头部控件(用StoreHouseHeader，也可以自定义,参考源代码)
+StoreHouseHeader  header = new StoreHouseHeader(this);
+header.setLayoutParams(new PtrFrameLayout.LayoutParams(-1,-2));
+header.setPadding(0,DimensUtil.dp2px(15,this),0,DimensUtil.dp2px(10,this));
+header.initWithString("Ultra PTR");
+
+ptrStoreHouse.setDurationToCloseHeader(1500);
+ptrStoreHouse.setHeaderView(header);
+ptrStoreHouse.addPtrUIHandler(header);
+
+
+第四步：设置下拉刷新的处理
+ptrStoreHouse.setPtrHandler(new PtrHandler() {
+            @Override
+            public boolean checkCanDoRefresh(PtrFrameLayout frame, View content, View header) {
+                return true;
+            }
+
+            @Override
+            public void onRefreshBegin(final PtrFrameLayout frame) {
+                frame.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        frame.refreshComplete();
+                    }
+                },2000);
+            }
+        });
+
+自定义storeHouse的刷新视图：
+初始化头部控件：
+		final RentalsSunHeaderView header = new RentalsSunHeaderView(this);
+        header.setLayoutParams(new PtrFrameLayout.LayoutParams(-1, -2));
+        header.setPadding(0, dp2px(15,this), 0, dp2px(15,this));
+        header.setUp(ptrStoreHouse);
+
+        ptrStoreHouse.setLoadingMinTime(1000);
+        ptrStoreHouse.setDurationToCloseHeader(1500);
+        ptrStoreHouse.setHeaderView(header);
+        ptrStoreHouse.addPtrUIHandler(header);
+
+设置进入自动刷新：
+ ptrStoreHouse.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                ptrStoreHouse.autoRefresh(true);
+            }
+        },100); -->开始自动刷新的时间
+
+
+设置记录上次刷新的时间(frameLayout布局无效):
+
+刷新时保持头部或不保持头部
+mPtrFrame.setKeepHeaderWhenRefresh(true);
+
+下拉刷新或释放刷新
+mPtrFrame.setPullToRefresh(false);
+
+ViewPager滑动冲突: disableWhenHorizontalMove()
+
+长按LongPressed, setInterceptEventWhileWorking()

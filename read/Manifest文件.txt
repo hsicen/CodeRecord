@@ -1,0 +1,104 @@
+
+Application，Activity，Activity-alias，mete-data，receiver，provider，service
+
+Application节点的属性：
+android:banner=""   提供横幅
+android:allowClearUserData=""    用户是否能选择自行清除数据
+android:allowTaskReparenting=""  表示Activity在其他应用的Task被启动后，如果再启动Activity原生应用，是否能将该Activity从被启动的Task直接移动到Activity原生应用的Task�?
+android:backupAgent=""   这也是Android2.2中的一个新特性，设置该APP的备份，属性值应该是一个完整的类名，如com.project.TestCase，此属性并没有默认值，并且类名必须得指�?就是个备份工具，将数据备份到云端的操�?
+android:backupInForeground=""   允许前台备份
+android:debuggable=""  决定该应用是否能被调试
+android:defaultToDeviceProtectedStorage=""   默认设备保护存储
+android:description=""   该属性没有默认值。必须为字串资源的引用，而不能像label一样可以直接使用字串。相比与label而言，对该应用更具描述性的用户可读文本�?
+android:directBootAware=""  
+android:enabled=""    定义Android系统是否能实例化该应用组件。
+android:extractNativeLibs=""    提取本地库
+android:fullBackupContent=""     备份全部内容
+android:fullBackupOnly=""             只备份
+android:hardwareAccelerated=""   硬件加速     定义在该应用中，所有的Activity和View是否能使用硬件加速渲染。
+android:hasCode=""    定义这个应用是否有任何代码。 true: (默认)有代码。false: 在启动时，系统不会去读取任何application代码。
+android:isGame=""       定义应用是否是一个游戏。    系统可能会对标示为游戏的应用进行单独分类，或者与其他应用分开单独显示。 
+android:killAfterRestore=""        定义应用在全系统恢复中恢复了设置后，是否需要被停止。   默认值为true。即在全系统恢复时，应用处理完自身的数据后就会被关闭。
+android:largeHeap=""            定义应用在运行时是否需要创建一个更大的Dalvik堆。
+android:logo=""       定义应用整个的默认标识，同时它也是所有子Activitys的默认标识。     该属性应该是一个包含图片的drawable资源引用。没有默认值，必须得设置。
+android:manageSpaceActivity=""         让用户可以手动管理应用的数据目录的Activitiy全名。
+android:multiArch=""     是否支持多架构
+android:name=""   该属性为一个实现Application的子类全名。当应用进程启动时，该类会早于其他所有Application组件启动。
+android:networkSecurityConfig=""            网络安全配置
+android:permission=""      该属性为客户需要跟该应用交互所需权限的名字。  该属性可以方便的为所有应用组件设置权限，同时可以被应用组件的权限属性覆盖。
+android:persistent=""        该属性定义应用是否能一直保持运行。   默认值为false。在一般情况下，应用不该设置该值，该模式主要是为特定的系统应用设计的。
+android:process=""           该属性定义了所有应用组件运行的进程名。组件自身的process属性可以覆盖Application的属性。默认情况下，当应用的第一个组件需要运行时，系统就会为应用创建一个默认进程。默认进程名就是在manifest中设置的包名。
+android:requiredAccountType=""     设置是否需要账号使用app
+android:requiredForAllUsers="false"   设置app是供多人使用
+android:resizeableActivity=""    是否可以调整activity的大小
+android:restoreAnyVersion=""    同样也是android2.2的一个新特性，用来表明应用是否准备尝试恢复所有的备份，甚至该备份是比当前设备上更要新的版本，默认是false
+android:restoreNeedsApplication=""      恢复到需要的Application
+android:restrictedAccountType=""    限制账号类型
+android:roundIcon=""      给应用设置圆形的图表
+android:taskAffinity=""    拥有相同的affinity的Activity理论上属于相同的Task，应用程序默认的affinity的名字是<manifest>元素中设定的package名
+android:testOnly=""          该属性指明了这个Application是否只是用来测试的。
+ android:uiOptions=""      该属性为应用中ActivityUI的额外设置。 必须设为以下的值：
+none: (默认)没有额外设置。splitActionBarWhenNarrow: 当在一个狭窄的屏幕运行启用split actionbar时，会在屏幕的底部出现一个action bar显示所有action item。而顶部主要显示导航相关的内容。确保有足够的空间来显示action item、导航栏和顶栏。
+android:usesCleartextTraffic=""          使用明文传输      该属性指定是否允许未被加密的网络流量
+android:vmSafeMode=""     属性指定该应用是否应该向虚拟机一样在安全模式中运行。 默认值为false。
+android:banner=""           Drawable资源，为相关联的元素提供一个图片横幅。 在<application>中表示为整个应用提供一个默认的横幅在<activity>中表示为该特定的activity提供横幅
+android:supportsRtl        该属性定义了应用是否支持从右到左的布局。true: targetSdkVersion设为了17或更高时，许多RTL API就会被激活，系统使用这些API来显示从右到左的布局。false: (默认)该值为false或targetSdkVersion设为了17以下，RTL API就会被无视或无效，同时应用会忽略掉跟布局相关的locale设置。（应用的布局永远都是从左向右
+
+
+
+Activity节点的属性：
+			android:roundIcon=""        设置圆形ICON
+            android:uiOptions=""          同上面Application
+            android:taskAffinity=""        同上面Application
+            android:resizeableActivity=""		同上面Application
+            android:allowEmbedded=""		允许被嵌入
+            android:allowTaskReparenting=""         同上面Application
+            android:alwaysRetainTaskState=""         同上面Application
+            android:autoRemoveFromRecents=""    自动从最近的移除掉
+            android:banner=""                                       设置横幅
+            android:clearTaskOnLaunch=""               当Task被置于后台，是否清除Task除了根Activity以外的其它所有Activity。
+            android:configChanges=""                         设置界面改变的相关配置
+            android:description=""									同上面Application
+            android:directBootAware=""						同上面Application
+            android:documentLaunchMode=""			支持文件启动模式
+            android:enabled=""										同上面Application
+            android:enableVrMode=""					     是否启用VR模式
+            android:excludeFromRecents=""             支持从最近任务移除
+            android:exported=""                                     是否暴露给外部访问
+            android:finishOnCloseSystemDialogs=""       当系统对话框结束时关闭activity
+            android:finishOnTaskLaunch=""                          当任务启动时结束
+            android:hardwareAccelerated=""                           启动硬件加速
+            android:icon=""									设置图标
+            android:immersive=""						设置沉浸式状态栏
+            android:label=""									设置标签
+            android:launchMode=""                    设置启动模式
+            android:lockTaskMode=""				锁定任务模式
+            android:logo=""									设置Logo
+            android:maxRecents=""                    设置最大任务数量
+            android:multiprocess=""         			是否可以在多个线程中
+            android:noHistory=""							是否在栈中保留
+            android:parentActivityName=""		 点击back时 会返回parent activity
+            android:permission=""                        设置权限
+            android:persistableMode=""             设置不被kill掉的方式
+            android:process=""                                所在进程
+            android:relinquishTaskIdentity=""     放弃任务同一性
+            android:resumeWhilePausing=""       不可见时恢复可见
+            android:showForAllUsers=""                所有用户可见
+            android:showOnLockScreen=""           锁频时可见
+            android:singleUser=""								单用户使用
+            android:stateNotNeeded=""  这个属性默认情况为false，若设为true，则当Activity重新启动时不会调用onSaveInstanceState（）方法，同样，onCreate（）方法中的Bundle参数将会用null值传进去，也就是说，Activity每次启动都跟第一次启动一样。这样，在某种特殊场合下，由于用户按了Home键，该属性设置为true时，
+			可以保证不用保存原先的状态引用，节省了空间资源，从而可以让Activity不会像默认设置那样Crash掉。
+            android:supportsPictureInPicture=""      支持画中画
+            android:windowSoftInputMode=""      支持窗口输入模式
+            android:name=".activity.SplashActivity"
+            android:screenOrientation="portrait"
+			android:theme="@style/AppTheme.Splash"
+
+
+
+
+
+
+
+
+

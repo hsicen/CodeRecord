@@ -1,0 +1,7 @@
+将自定义对象转化为Json字符串
+		new Gson().toJson(JavaBean);
+
+		
+将Json字符串转化为自定义对象
+		new Gson().fromJson(jsonStr);    转化json对象
+		List<JavaBean> beanList = new Gson().fromJson(jsonStr,new TypeToken<List<JavaBean>>(){}.getType());  转化json数组

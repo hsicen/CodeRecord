@@ -1,0 +1,135 @@
+单独使用Retrofit：
+
+1、先写一个service
+interface MyService {
+  @GET("user/login" )
+  Call<UserInfo> login(
+          @Query("username") String username,
+          @Query("password") String password
+  );
+}
+2、获取Call执行网络请求
+ Retrofit retrofit = new Retrofit.Builder()
+              .addConverterFactory(GsonConverterFactory.create())
+              .baseUrl(BASE_URL)
+              .build();
+      MyService service = retrofit.create(MyService.class);
+
+      Call<UserInfo> call = service.login("1111", "ssss");
+      call.enqueue(new Callback<UserInfo>() {
+          @Override
+          public void onResponse(Call<UserInfo> call, Response<UserInfo> response) {
+              //请求成功操作
+          }
+          @Override
+          public void onFailure(Call<UserInfo> call, Throwable t) {
+              //请求失败操作
+          }
+      });
+
+
+RxJava + Retrofit完成网络请求
+1、添加依赖。
+  compile 'io.reactivex:rxjava:x.y.z'
+  compile 'io.reactivex:rxandroid:1.0.1'
+  compile 'com.squareup.retrofit2:retrofit:2.0.2'
+  compile 'com.squareup.retrofit2:converter-gson:2.0.2'
+  compile 'com.squareup.retrofit2:adapter-rxjava:2.0.2'
+最后三个包的版本号必须一样，这里用的是2.0.2。
+2、写一个登录的service
+interface MyService {
+  @GET("user/login" )
+  Observable<UserInfo> login(
+          @Query("username") String username,
+          @Query("password") String password
+  );
+}
+3、使用Observable完成一个网络请求，登录成功后保存数据到本地。
+Retrofit retrofit = new Retrofit.Builder()
+            .addConverterFactory(GsonConverterFactory.create())
+            .addCallAdapterFactory(RxJavaCallAdapterFactory.create())//新的配置
+            .baseUrl(BASE_URL)
+            .build();
+      MyService service = retrofit.create(MyService.class);
+
+      service.login(phone, password)               //获取Observable对象
+              .subscribeOn(Schedulers.newThread())//请求在新的线程中执行
+              .observeOn(Schedulers.io())         //请求完成后在io线程中执行
+              .doOnNext(new Action1<UserInfo>() {
+                  @Override
+                  public void call(UserInfo userInfo) {
+                      saveUserInfo(userInfo);//保存用户信息到本地
+                  }
+              })
+              .observeOn(AndroidSchedulers.mainThread())//最后在主线程中执行
+              .subscribe(new Subscriber<UserInfo>() {
+                  @Override
+                  public void onCompleted() {
+
+                  }
+
+                  @Override
+                  public void onError(Throwable e) {
+                      //请求失败
+                  }
+
+                  @Override
+                  public void onNext(UserInfo userInfo) {
+                      //请求成功
+                  }
+              });
+
+
+RxJava + Retrofit 进阶
+在登录后得到的并不是用户信息。一般登录后会得到token，然后根据token去获取用户的信息。他们的步骤是这样的：
+1、登录
+2、获取用户信息（前提：登录成功）
+
+定义Services
+//登录，获取token
+@GET("/login")
+public Observable<String> login(
+  @Query("username") String username,
+  @Query("password") String password);
+//根据token获取用户信息
+@GET("/user")
+public Observable<User> getUser(
+  @Query("token") String token);
+
+ 网络请求
+service.login("11111", "22222")
+  .flatMap(new Func1<String, Observable<User>>() {  //得到token后获取用户信息
+      @Override
+      public Observable<User> onNext(String token) {
+          return service.getUser(token);
+      })
+  .subscribeOn(Schedulers.newThread())//请求在新的线程中执行请求
+  .observeOn(Schedulers.io())         //请求完成后在io线程中执行
+  .doOnNext(new Action1<User>() {      //保存用户信息到本地
+       @Override
+       public void call(User userInfo) {
+           saveUserInfo(userInfo);
+       }
+   })
+  .observeOn(AndroidSchedulers.mainThread())//在主线程中执行
+  .subscribe(new Observer<User>() {
+      @Override
+      public void onNext(User user) {
+          //完成一次完整的登录请求
+          userView.setUser(user);
+      }
+
+      @Override
+      public void onCompleted() {
+
+      }
+
+      @Override
+      public void onError(Throwable error) {
+          //请求失败
+      }
+  });
+
+
+进度框的加载：
+在onStart()方法里加载进度框，在onError()和onComplete()方法里取消进度框

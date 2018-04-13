@@ -1,0 +1,213 @@
+第一步：在res/values文件夹下新建attrs文件，定义自定义属性
+<resources>
+
+    <!--定义当前工程下所有自定义View的属性-->
+    <!--
+        name为自定义属性的名字
+        format为自定义属性的取值，有10中取值类型
+            1.string:取值为字符串
+            2.color：取值为颜色值
+            3.dimension：取值为dp/sp
+            4.integer：取值为整形
+            5.enum：取值为枚举类型
+            6.reference：资源引用
+            7.float：取值为浮点型
+            8.boolean：取值为布尔类型
+            9.fraction：
+            10.flag：
+    -->
+    <attr name="titleText" format="string"/>
+    <attr name="titleTextColor" format="color"/>
+    <attr name="titleTextSize" format="dimension"/>
+    <attr name="image" format="reference"/>
+    <attr name="imageScaleType">
+        <enum name="fillY" value="0"/>
+        <enum name="center" value="1"/>
+    </attr>
+
+    <attr name="firstColor" format="color"/>
+    <attr name="secondColor" format="color"/>
+    <attr name="circleWidth" format="dimension"/>
+    <attr name="speed" format="integer"/>
+
+    <attr name="dotCount" format="integer"/>
+    <attr name="splitSize" format="integer"/>
+    <attr name="bg" format="reference"/>
+
+
+    <!--定义CustomTitleView-->
+    <declare-styleable name="CustomTitleView">
+        <attr name="titleText"/>
+        <attr name="titleTextColor"/>
+        <attr name="titleTextSize"/>
+    </declare-styleable>
+
+    <!--自定义ImageView-->
+    <declare-styleable name="CustomImageView">
+        <attr name="titleText"/>
+        <attr name="titleTextSize"/>
+        <attr name="titleTextColor"/>
+        <attr name="image"/>
+        <attr name="imageScaleType"/>
+    </declare-styleable>
+
+    <!--自定义ProgressBar-->
+    <declare-styleable name="CustomProgressBar">
+        <attr name="firstColor"/>
+        <attr name="secondColor"/>
+        <attr name="circleWidth"/>
+        <attr name="speed"/>
+    </declare-styleable>
+
+    <!--自定义VolumeControlBar-->
+    <declare-styleable name="CustomVolumeControlBar">
+        <attr name="firstColor"/>
+        <attr name="secondColor"/>
+        <attr name="circleWidth"/>
+        <attr name="dotCount"/>
+        <attr name="splitSize"/>
+        <attr name="bg"/>
+    </declare-styleable>
+
+</resources>
+
+第二步：创建java自定义view文件
+重写三个构造方法，一个参数的调用两个参数的，两个参数的调用三个参数的，在第三个参数的构造方法里获取自定义的属性
+public CustomVolumeControlBar(Context context) {
+        this(context,null);
+    }
+
+    public CustomVolumeControlBar(Context context, AttributeSet attrs) {
+        this(context, attrs,0);
+    }
+
+    public CustomVolumeControlBar(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+
+        TypedArray a = context.getTheme().obtainStyledAttributes(attrs,
+                R.styleable.CustomVolumeControlBar, defStyleAttr, 0);
+
+        for (int i = 0; i < a.getIndexCount(); i++) {
+            int attr = a.getIndex(i);
+            switch (attr) {
+                case R.styleable.CustomVolumeControlBar_firstColor:
+                    mFirstColor = a.getColor(attr, Color.GREEN);
+                    break;
+                case R.styleable.CustomVolumeControlBar_secondColor:
+                    mSecondColor = a.getColor(attr, Color.CYAN);
+                    break;
+                case R.styleable.CustomVolumeControlBar_bg:
+                    mImage = BitmapFactory.decodeResource(getResources(), a.getResourceId(attr, 0));
+                    break;
+                case R.styleable.CustomVolumeControlBar_circleWidth:
+                    mCircleWidth = a.getDimensionPixelSize(attr, (int) TypedValue.applyDimension(
+                            TypedValue.COMPLEX_UNIT_PX, 20, getResources().getDisplayMetrics()));
+                    break;
+                case R.styleable.CustomVolumeControlBar_dotCount:
+                    mCount = a.getInt(attr, 20);
+                    break;
+                case R.styleable.CustomVolumeControlBar_splitSize:
+                    mSplitSize = a.getInt(attr, 20);
+                    break;
+            }
+
+            /*a.recycle();*/
+            mPaint = new Paint();
+            mRect = new Rect();
+        }
+    }
+
+第三步：重写onMeasure方法
+int width = 0;
+        int height = 0;
+
+        /**
+         * 设置宽度
+         */
+        int specMode = MeasureSpec.getMode(widthMeasureSpec);
+        int specSize = MeasureSpec.getSize(widthMeasureSpec);
+        switch (specMode) {
+            //明确指定宽度的情况下
+            case MeasureSpec.EXACTLY:
+                width = getPaddingLeft()+getPaddingRight()+specSize;
+                break;
+            //一般为Wrap_content
+            case MeasureSpec.AT_MOST:
+                width = getPaddingLeft()+getPaddingRight()+mBound.width();
+                break;
+            case MeasureSpec.UNSPECIFIED:
+                break;
+        }
+
+        /**
+         * 设置高度
+         */
+        specMode = MeasureSpec.getMode(heightMeasureSpec);
+        specSize = MeasureSpec.getSize(heightMeasureSpec);
+        switch (specMode){
+            //明确指明高度的情况下
+            case MeasureSpec.EXACTLY:
+                height = getPaddingTop()+getPaddingBottom()+specSize;
+                break;
+            case MeasureSpec.AT_MOST:
+                height = getPaddingTop()+getPaddingBottom()+mBound.height();
+                break;
+            case MeasureSpec.UNSPECIFIED:
+                break;
+        }
+
+        //设置宽高
+        setMeasuredDimension(width,height);
+第四步：重写onDraw方法
+mPaint.setColor(mTitleTextColor);
+        canvas.drawText(mTitleText,getWidth()/2-mBound.width()/2,
+                getHeight()/2+mBound.height()/2,mPaint);
+
+注意：
+1.Rect函数可以测量文本的宽高
+2.TypeArray函数是用来简化我们的工作的，可以直接获得引用资源对应的值,然而AttributeSet获取引用资源属性时获取的是id值
+3.declare-styleable 可以直接使用系统已有的属性，区别是不能在添加format标签
+<declare-styleable name="test">
+        <attr name="android:text" />
+        <attr name="testAttr" format="integer" />
+    </declare-styleable>
+这里我们是使用已经定义好的属性，不需要去添加format属性（注意声明和使用的区别，差别就是有没有format）
+然后在类中这么获取：ta.getString(R.styleable.test_android_text);布局文件中直接android:text="@string/hello_world"即可。
+
+4.styleable 的含义是什么？可以不写嘛？我自定义属性，我声明属性就好了，为什么一定要写个styleable呢？
+其实的确是可以不写的，怎么做呢？
+首先删除declare-styleable的标签
+那么现在的attrs.xml为：
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="testAttr" format="integer" />
+</resources>
+MyTextView实现：
+public class MyTextView extends View {
+
+    private static final String TAG = MyTextView.class.getSimpleName();
+
+    private static final int[] mAttr = { android.R.attr.text, R.attr.testAttr };
+    private static final int ATTR_ANDROID_TEXT = 0;
+    private static final int ATTR_TESTATTR = 1;
+
+    public MyTextView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+
+        // ==>use typedarray
+        TypedArray ta = context.obtainStyledAttributes(attrs, mAttr);
+
+        String text = ta.getString(ATTR_ANDROID_TEXT);
+        int textAttr = ta.getInteger(ATTR_TESTATTR, -1);
+        //输出 text = Hello world! , textAttr = 520
+        Log.e(TAG, "text = " + text + " , textAttr = " + textAttr);
+        ta.recycle();
+    }
+}
+styleale的出现系统可以为我们完成很多常量（int[]数组，下标常量）等的编写，简化我们的开发工作
+
+
+总结下今天的博客：
+attrs.xml里面的declare-styleable以及item，android会根据其在R.java中生成一些常量方便我们使用(aapt干的)，本质上，我们可以不声明declare-styleable仅仅声明所需的属性即可。
+我们在View的构造方法中，可以通过AttributeSet去获得自定义属性的值，但是比较麻烦，而TypedArray可以很方便的便于我们去获取。
+我们在自定义View的时候，可以使用系统已经定义的属性。

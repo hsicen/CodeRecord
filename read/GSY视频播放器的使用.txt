@@ -1,0 +1,546 @@
+第一步添加依赖：
+在项目工程目录下：
+allprojects {
+    repositories {
+        jcenter()
+        maven { url 'https://jitpack.io' }
+    }
+}
+在module目录下：
+compile 'com.github.CarGuo:GSYVideoPlayer:v1.5.7'
+
+注意播放视频的Activity都要添加这两个属性：
+android:configChanges="orientation|keyboardHidden|screenSize"
+android:screenOrientation="portrait"
+
+简单的视频播放：
+添加控件，绑定控件，初始化：
+//设置视频播放地址和标题，缓存
+        mGSYStandard.setUp(UrlUtil.VIDEO_URL1,true,null,"简单的视频播放");
+
+        //增加封面
+        mIVVideoCover = new ImageView(this);
+        mIVVideoCover.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        Glide.with(this).load(UrlUtil.IMG_URL2).crossFade().into(mIVVideoCover);
+        mGSYStandard.setThumbImageView(mIVVideoCover);
+
+        //增加标题
+        mGSYStandard.getTitleTextView().setVisibility(View.VISIBLE);
+        mGSYStandard.getTitleTextView().setText("");
+
+        //设置返回键
+        mGSYStandard.getBackButton().setVisibility(View.GONE);
+
+        //设置旋转
+        mOrientationUtils = new OrientationUtils(this, mGSYStandard);
+
+        //设置全屏按键功能
+        mGSYStandard.getFullscreenButton().setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mOrientationUtils.resolveByClick();  //旋转屏幕
+				mGSYStandard.startWindowFullscreen(XianActivity.this,false,true); //设置全屏
+            }
+        });
+
+        //设置是否可以滑动调整(调整音量和亮度)
+        mGSYStandard.setIsTouchWiget(true);
+
+        //设置返回按键功能
+        mGSYStandard.getBackButton().setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onBackPressed();
+            }
+        });
+
+设置相关生命周期方法(最好在基类Activity中设置)
+@Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        // 设置一个exit transition
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
+            getWindow().setEnterTransition(new Explode());
+            getWindow().setExitTransition(new Explode());
+        }
+
+        super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (StandardGSYVideoPlayer.backFromWindowFull(this)){
+            return;
+        }
+        super.onBackPressed();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        GSYVideoManager.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        GSYVideoManager.onResume();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        GSYVideoPlayer.releaseAllVideos();
+    }
+
+
+ListView中视频的播放设置：
+Adapter<VideoEntity> adapter = new Adapter<VideoEntity>(this,R.layout.layout_video) {
+            @Override
+            protected void convert(AdapterHelper helper, VideoEntity item) {
+                final StandardGSYVideoPlayer  videoPlayer = helper.getView(R.id.GSY_standard);
+                videoPlayer.setThumbImageView(mIVVideoCover);
+                videoPlayer.setUp(item.url,true,null,"播放标题");
+                videoPlayer.getTitleTextView().setVisibility(View.GONE);
+                videoPlayer.getBackButton().setVisibility(View.GONE);
+
+                videoPlayer.getFullscreenButton().setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        videoPlayer.startWindowFullscreen(XianActivity.this,false,true);
+                    }
+                });
+                videoPlayer.setRotateViewAuto(true);
+                videoPlayer.setLockLand(true);
+                videoPlayer.setPlayTag(mTAG);
+                videoPlayer.setShowFullAnimation(true);
+
+                //设置循环播放
+                videoPlayer.setLooping(true);
+                videoPlayer.setNeedLockFull(true);
+
+                //设置播放位置,防止播放错位
+                videoPlayer.setPlayPosition(helper.getPosition());
+
+                videoPlayer.setStandardVideoAllCallBack(new SimpleListener() {  自定义的监听器继承于StandardVideoAllCallBack，
+								用于不用重写全部的抽象方法
+                    @Override
+                    public void onPrepared(String s, Object... objects) {
+                        super.onPrepared(s, objects);
+                        if (videoPlayer.isIfCurrentIsFullscreen())
+                            GSYVideoManager.instance().setNeedMute(true);
+                    }
+
+                    @Override
+                    public void onQuitFullscreen(String s, Object... objects) {
+                        super.onQuitFullscreen(s, objects);
+                        GSYVideoManager.instance().setNeedMute(true);
+                    }
+
+                    @Override
+                    public void onEnterFullscreen(String s, Object... objects) {
+                        super.onEnterFullscreen(s, objects);
+                        GSYVideoManager.instance().setNeedMute(false);
+                    }
+                });
+            }
+        };
+
+        adapter.addAll(mVideoList);
+        mLvVideoList.setAdapter(adapter);
+
+//设置一个ImageView用于多个视频的封面（ConvertView复用时使用）
+if (holder.imageView.getParent() != null) {
+            ViewGroup viewGroup = (ViewGroup) holder.imageView.getParent();
+            viewGroup.removeView(holder.imageView);
+        }
+//设置ListView滑出界面停止播放
+public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+        int lastVisibleItem = firstVisibleItem + visibleItemCount;
+        //大于0说明有播放
+        if (GSYVideoManager.instance().getPlayPosition() >= 0){
+            //当前播放位置
+            int position = GSYVideoManager.instance().getPlayPosition();
+            //对应的播放列表TAG
+            if (GSYVideoManager.instance().getPlayTag().equals(mTAG)
+                    && (position< firstVisibleItem || position>lastVisibleItem)){
+                //如果滑出去就释放
+                GSYVideoPlayer.releaseAllVideos();
+                mAdapter.notifyDataSetChanged();
+            }
+        }
+    }
+
+
+ListView悬浮窗视频播放：
+mListVideoUtil = new ListVideoUtil(this);
+        mListVideoUtil.setFullViewContainer(mVideoFullContainer);
+        mListVideoUtil.setHideActionBar(true);
+        mListVideoUtil.setHideStatusBar(true);
+        mListVideoUtil.setNeedLockFull(true);
+
+        mListVideoUtil.setShowFullAnimation(true);
+        mListVideoUtil.setAutoRotation(true);
+        mListVideoUtil.setFullLandFrist(true);
+
+        mAdapter2 = new Adapter<VideoEntity>(this, R.layout.layout_video2) {
+            @Override
+            protected void convert(final AdapterHelper helper, final VideoEntity item) {
+
+                //视频封面设置
+                mIVVideoCover = new ImageView(XianActivity.this);
+                Glide.with(XianActivity.this).load(UrlUtil.IMG_URL2).crossFade().into(mIVVideoCover);
+                mIVVideoCover.setScaleType(ImageView.ScaleType.CENTER_CROP);
+
+                FrameLayout videoContainer = helper.getView(R.id.list_item_container);
+                ImageView playerBtn = helper.getView(R.id.list_item_btn);
+                mListVideoUtil.addVideoPlayer(helper.getPosition(), mIVVideoCover,
+                        TAG,videoContainer,playerBtn);
+                playerBtn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        notifyDataSetChanged();
+                        mListVideoUtil.setLoop(true);
+                        mListVideoUtil.setPlayPositionAndTag(helper.getPosition(),TAG);
+                        mListVideoUtil.startPlay(item.url);
+                    }
+                });
+            }
+        };
+
+        mAdapter2.addAll(mVideoList);
+        mLvVideoList.setAdapter(mAdapter2);
+
+        mListVideoUtil.setVideoAllCallBack(new SimpleListener(){
+            @Override
+            public void onQuitSmallWidget(String s, Object... objects) {
+                super.onQuitSmallWidget(s, objects);
+                //大于0说明有播放
+                if (mListVideoUtil.getPlayPosition()>=0 && mListVideoUtil.getPlayTAG().equals(TAG)){
+                    int position = mListVideoUtil.getPlayPosition();
+                    if ((position<mFirstVisibleItem) || position>mLastVisibleItem){
+                        //释放掉视频
+                        mListVideoUtil.releaseVideoPlayer();
+                        mAdapter2.notifyDataSetChanged();
+                    }
+                }
+            }
+        });
+
+ListView的滑动监听
+mFirstVisibleItem = firstVisibleItem;
+        mLastVisibleItem = firstVisibleItem+visibleItemCount;
+
+        //大于0说明有播放，对应的播放列表TAG
+        if (mListVideoUtil.getPlayPosition() >= 0 && mListVideoUtil.getPlayTAG().equals(TAG)){
+            //当前播放位置
+            int position = mListVideoUtil.getPlayPosition();
+            //不可见的时候
+            if ((position<firstVisibleItem || position>mLastVisibleItem)){
+                //如果是小窗口就不需要处理
+                if (!mListVideoUtil.isSmall()){
+                    //小窗口
+                    int size = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,250,
+                            getResources().getDisplayMetrics());
+                    mListVideoUtil.showSmallVideo(new Point(size,size),false,true);
+                }
+            }else {
+                if (mListVideoUtil.isSmall())
+                    mListVideoUtil.smallVideoToNormal();
+            }
+        }
+
+
+在RecyclerView中视频的播放以及悬浮播放
+设置滑动监听：
+@Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                firstVisibleItem   = linearLayoutManager.findFirstVisibleItemPosition();
+                lastVisibleItem = linearLayoutManager.findLastVisibleItemPosition();
+                //大于0说明有播放
+                if (GSYVideoManager.instance().getPlayPosition() >= 0) {
+                    //当前播放的位置
+                    int position = GSYVideoManager.instance().getPlayPosition();
+                    //对应的播放列表TAG
+                    if (GSYVideoManager.instance().getPlayTag().equals(ListNormalAdapter.TAG)
+                            && (position < firstVisibleItem || position > lastVisibleItem)) {
+
+                        //如果滑出去了上面和下面就是否，和今日头条一样
+                        GSYVideoPlayer.releaseAllVideos();
+                        recyclerNormalAdapter.notifyDataSetChanged();
+                    }
+                }
+            }
+设置适配器数据绑定：
+在RecyclerView的Adapter中绑定数据
+
+悬浮播放：
+ListVideoUtils类的使用
+
+
+*************************************************************************************************
+视频在ListView和RecyclerView中的使用总结
+没有悬浮窗播放功能：
+添加控件，查找控件，设置适配器，绑定数据，设置监听，生命周期处理
+添加控件：ListView或者RecyclerView（他们的item布局为一个StandardGSYVideoPlayer控件）
+查找控件：绑定id，listView，RecyclerView的初始化
+创建适配器：BaseAdapter
+在适配器中绑定数据：
+Adapter<VideoEntity> adapter = new Adapter<VideoEntity>(this,R.layout.layout_video) {
+            @Override
+            protected void convert(AdapterHelper helper, VideoEntity item) {
+                final StandardGSYVideoPlayer  videoPlayer = helper.getView(R.id.GSY_standard);
+                videoPlayer.setThumbImageView(mIVVideoCover);
+                videoPlayer.setUp(item.url,true,null,"播放标题");
+                videoPlayer.getTitleTextView().setVisibility(View.GONE);
+                videoPlayer.getBackButton().setVisibility(View.GONE);
+
+                videoPlayer.getFullscreenButton().setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        videoPlayer.startWindowFullscreen(XianActivity.this,false,true);
+                    }
+                });
+                videoPlayer.setRotateViewAuto(true);
+                videoPlayer.setLockLand(true);
+                videoPlayer.setPlayTag(mTAG);
+                videoPlayer.setShowFullAnimation(true);
+
+                //设置循环播放
+                videoPlayer.setLooping(true);
+                videoPlayer.setNeedLockFull(true);
+
+                //设置播放位置,防止播放错位
+                videoPlayer.setPlayPosition(helper.getPosition());
+
+                videoPlayer.setStandardVideoAllCallBack(new SimpleListener() {  自定义的监听器继承于StandardVideoAllCallBack，
+								用于不用重写全部的抽象方法
+                    @Override
+                    public void onPrepared(String s, Object... objects) {
+                        super.onPrepared(s, objects);
+                        if (videoPlayer.isIfCurrentIsFullscreen())
+                            GSYVideoManager.instance().setNeedMute(true);
+                    }
+
+                    @Override
+                    public void onQuitFullscreen(String s, Object... objects) {
+                        super.onQuitFullscreen(s, objects);
+                        GSYVideoManager.instance().setNeedMute(true);
+                    }
+
+                    @Override
+                    public void onEnterFullscreen(String s, Object... objects) {
+                        super.onEnterFullscreen(s, objects);
+                        GSYVideoManager.instance().setNeedMute(false);
+                    }
+                });
+            }
+        };
+
+        adapter.addAll(mVideoList);
+        mLvVideoList.setAdapter(adapter);
+
+设置监听：
+@Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                int lastVisibleItem = firstVisibleItem + visibleItemCount;
+                //大于0说明有播放
+                if (GSYVideoManager.instance().getPlayPosition() >= 0) {
+                    //当前播放的位置
+                    int position = GSYVideoManager.instance().getPlayPosition();
+                    //对应的播放列表TAG
+                    if (GSYVideoManager.instance().getPlayTag().equals(ListNormalAdapter.TAG)
+                            && (position < firstVisibleItem || position > lastVisibleItem)) {
+                        //如果滑出去了上面和下面就是否，和今日头条一样
+                        GSYVideoPlayer.releaseAllVideos();
+                        listNormalAdapter.notifyDataSetChanged();
+                    }
+                }
+            }
+RecyclerView的监听：
+public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                firstVisibleItem   = linearLayoutManager.findFirstVisibleItemPosition();
+                lastVisibleItem = linearLayoutManager.findLastVisibleItemPosition();
+                //大于0说明有播放
+                if (GSYVideoManager.instance().getPlayPosition() >= 0) {
+                    //当前播放的位置
+                    int position = GSYVideoManager.instance().getPlayPosition();
+                    //对应的播放列表TAG
+                    if (GSYVideoManager.instance().getPlayTag().equals(ListNormalAdapter.TAG)
+                            && (position < firstVisibleItem || position > lastVisibleItem)) {
+
+                        //如果滑出去了上面和下面就是否，和今日头条一样
+                        GSYVideoPlayer.releaseAllVideos();
+                        recyclerNormalAdapter.notifyDataSetChanged();
+                    }
+                }
+            }
+
+生命周期处理：
+ @Override
+    public void onBackPressed() {
+        if (StandardGSYVideoPlayer.backFromWindowFull(this)) {
+            return;
+        }
+        super.onBackPressed();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        GSYVideoManager.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        GSYVideoManager.onResume();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        GSYVideoPlayer.releaseAllVideos();
+    }
+	protected void onCreate(Bundle savedInstanceState) {
+        // 设置一个exit transition
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
+            getWindow().setEnterTransition(new Explode());
+            getWindow().setExitTransition(new Explode());
+        }
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_list_video);
+        ButterKnife.bind(this);
+    }
+
+有悬浮窗播放功能：
+添加控件：ListView/RecyclerView和一个FrameLayout（他们的item布局为FrameLayout和ImageView）
+查找控件，设置适配器，绑定数据：
+mListVideoUtil = new ListVideoUtil(this);
+        mListVideoUtil.setFullViewContainer(mVideoFullContainer);
+       /* mListVideoUtil.setHideActionBar(true);*/
+        mListVideoUtil.setHideStatusBar(true);
+        mListVideoUtil.setNeedLockFull(true);
+        mListVideoUtil.setNeedShowWifiTip(true);
+
+        /*mListVideoUtil.setShowFullAnimation(true);
+        mListVideoUtil.setAutoRotation(true);
+        mListVideoUtil.setFullLandFrist(true);*/
+
+        mAdapter2 = new Adapter<VideoEntity>(this, R.layout.layout_video2) {
+            @Override
+            protected void convert(final AdapterHelper helper, final VideoEntity item) {
+
+                //视频封面设置
+                mIVVideoCover = new ImageView(XianActivity.this);
+                Glide.with(XianActivity.this).load(UrlUtil.IMG_URL2).crossFade().into(mIVVideoCover);
+                mIVVideoCover.setScaleType(ImageView.ScaleType.CENTER_CROP);
+
+                FrameLayout videoContainer = helper.getView(R.id.list_item_container);
+                ImageView playerBtn = helper.getView(R.id.list_item_btn);
+                mListVideoUtil.addVideoPlayer(helper.getPosition(), mIVVideoCover,
+                        TAG,videoContainer,playerBtn);
+                playerBtn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        notifyDataSetChanged();
+                        mListVideoUtil.setLoop(true);
+                        mListVideoUtil.setPlayPositionAndTag(helper.getPosition(),TAG);
+                        mListVideoUtil.startPlay(item.url);
+                    }
+                });
+            }
+        };
+
+        mAdapter2.addAll(mVideoList);
+        mLvVideoList.setAdapter(mAdapter2);
+
+        mListVideoUtil.setVideoAllCallBack(new SimpleListener(){
+
+            @Override
+            public void onEnterSmallWidget(String s, Object... objects) {
+                super.onEnterSmallWidget(s, objects);
+                Log.d(TAG, "onEnterSmallWidget: "+s);
+            }
+
+            @Override
+            public void onQuitSmallWidget(String s, Object... objects) {
+                super.onQuitSmallWidget(s, objects);
+                //大于0说明有播放
+                if (mListVideoUtil.getPlayPosition()>=0 && mListVideoUtil.getPlayTAG().equals(TAG)){
+                    int position = mListVideoUtil.getPlayPosition();
+                    if ((position<mFirstVisibleItem) || position>mLastVisibleItem){
+                        //释放掉视频
+                        mListVideoUtil.releaseVideoPlayer();
+                        mAdapter2.notifyDataSetChanged();
+                    }
+                }
+            }
+        });
+滑动监听：
+mFirstVisibleItem = firstVisibleItem;
+        mLastVisibleItem = firstVisibleItem+visibleItemCount;
+
+        //大于0说明有播放，对应的播放列表TAG
+        if (mListVideoUtil.getPlayPosition() >= 0 && mListVideoUtil.getPlayTAG().equals(TAG)){
+            //当前播放位置
+            int position = mListVideoUtil.getPlayPosition();
+            //不可见的时候
+            if ((position<firstVisibleItem || position>mLastVisibleItem)){
+                //如果是小窗口就不需要处理
+                if (!mListVideoUtil.isSmall()){
+                    //小窗口
+                    int size = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,250,
+                            getResources().getDisplayMetrics());
+                    mListVideoUtil.showSmallVideo(new Point(size,size),false,true);
+                }
+            }else {
+                if (mListVideoUtil.isSmall())
+                    mListVideoUtil.smallVideoToNormal();
+            }
+        }
+RecyclerView的监听：
+public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                firstVisibleItem   = linearLayoutManager.findFirstVisibleItemPosition();
+                lastVisibleItem = linearLayoutManager.findLastVisibleItemPosition();
+                Debuger.printfLog("firstVisibleItem " + firstVisibleItem +" lastVisibleItem " + lastVisibleItem);
+                //大于0说明有播放,//对应的播放列表TAG
+                if (listVideoUtil.getPlayPosition() >= 0 && listVideoUtil.getPlayTAG().equals(RecyclerItemViewHolder.TAG)) {
+                    //当前播放的位置
+                    int position = listVideoUtil.getPlayPosition();
+                    //不可视的是时候
+                    if ((position < firstVisibleItem || position > lastVisibleItem)) {
+                        //如果是小窗口就不需要处理
+                        if (!listVideoUtil.isSmall() && !listVideoUtil.isFull()) {
+                            //小窗口
+                            int size = CommonUtil.dip2px(RecyclerView2Activity.this, 150);
+                            //actionbar为true才不会掉下面去
+                            listVideoUtil.showSmallVideo(new Point(size, size), true, true);
+                        }
+                    } else {
+                        if (listVideoUtil.isSmall()) {
+                            listVideoUtil.smallVideoToNormal();
+                        }
+                    }
+                }
+            }
+生命周期处理：
+@Override
+    public void onBackPressed() {
+        if (listVideoUtil.backFromFull()) {
+            return;
+        }
+        super.onBackPressed();
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        listVideoUtil.releaseVideoPlayer();
+        GSYVideoPlayer.releaseAllVideos();
+    }
