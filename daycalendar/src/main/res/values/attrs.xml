@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <declare-styleable name="WeekView">
+    <declare-styleable name="WeekViewNew">
         <attr name="firstDayOfWeeks" format="enum">
             <enum name="sunday" value="1"/>
             <enum name="monday" value="2"/>
@@ -51,5 +51,13 @@
         <attr name="verticalFlingEnabled" format="boolean"/>
         <attr name="allDayEventHeight" format="dimension"/>
         <attr name="scrollDuration" format="integer"/>
+        <attr name="unbusyColor" format="color"/>
+        <attr name="unbusyText" format="string"/>
+        <attr name="unbusySize" format="dimension"/>
+        <attr name="unbusyBackgroundColor" format="color"/>
+        <attr name="allDayText" format="string"/>
+        <attr name="showWeekend" format="boolean"/>
+
+        <attr name="canScroll" format="boolean" />
     </declare-styleable>
 </resources>
