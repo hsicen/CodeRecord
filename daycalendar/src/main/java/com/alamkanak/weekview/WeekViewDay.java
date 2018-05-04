@@ -49,16 +49,14 @@ import static com.alamkanak.weekview.WeekViewUtil.today;
  * Created by Raquib-ul-Alam Kanak on 7/21/2014.
  * Website: http://alamkanak.github.io/
  */
-public class WeekView extends View {
+public class WeekViewDay extends View {
 
+    /*** 滑动方向定义*/
     private enum Direction {
+
         NONE, LEFT, RIGHT, VERTICAL
     }
 
-    @Deprecated
-    public static final int LENGTH_SHORT = 1;
-    @Deprecated
-    public static final int LENGTH_LONG = 2;
     private final Context mContext;
     private Paint mTimeTextPaint;
     private float mTimeTextWidth;
@@ -132,8 +130,6 @@ public class WeekView extends View {
     private int mHeaderColumnBackgroundColor = Color.WHITE;
     private boolean mIsFirstDraw = true;
     private boolean mAreDimensionsInvalid = true;
-    @Deprecated
-    private int mDayNameLength = LENGTH_LONG;
     private int mOverlappingEventGap = 0;
     private int mEventMarginVertical = 0;
     private float mXScrollingSpeed = 1f;
@@ -213,12 +209,12 @@ public class WeekView extends View {
                         case RIGHT:
                             if (mCanScroll) {
                                 mCurrentOrigin.x -= distanceX * mXScrollingSpeed;
-                                ViewCompat.postInvalidateOnAnimation(WeekView.this);
+                                ViewCompat.postInvalidateOnAnimation(WeekViewDay.this);
                             }
                             break;
                         case VERTICAL:
                             mCurrentOrigin.y -= distanceY;
-                            ViewCompat.postInvalidateOnAnimation(WeekView.this);
+                            ViewCompat.postInvalidateOnAnimation(WeekViewDay.this);
                             break;
                     }
                     return false;
@@ -255,7 +251,7 @@ public class WeekView extends View {
                             break;
                     }
 
-                    ViewCompat.postInvalidateOnAnimation(WeekView.this);
+                    ViewCompat.postInvalidateOnAnimation(WeekViewDay.this);
                     return true;
                 }
 
@@ -311,17 +307,17 @@ public class WeekView extends View {
                 }
             };
 
-    public WeekView(Context context) {
+    public WeekViewDay(Context context) {
 
         this(context, null);
     }
 
-    public WeekView(Context context, AttributeSet attrs) {
+    public WeekViewDay(Context context, AttributeSet attrs) {
 
         this(context, attrs, 0);
     }
 
-    public WeekView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public WeekViewDay(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
 
         // Hold references.
@@ -358,7 +354,6 @@ public class WeekView extends View {
             mEventTextColor = a.getColor(R.styleable.WeekViewNew_eventTextColor, mEventTextColor);
             mEventPadding = a.getDimensionPixelSize(R.styleable.WeekViewNew_eventPadding, mEventPadding);
             mHeaderColumnBackgroundColor = a.getColor(R.styleable.WeekViewNew_headerColumnBackground, mHeaderColumnBackgroundColor);
-            mDayNameLength = a.getInteger(R.styleable.WeekViewNew_dayNameLength, mDayNameLength);
             mOverlappingEventGap = a.getDimensionPixelSize(R.styleable.WeekViewNew_overlappingEventGap, mOverlappingEventGap);
             mEventMarginVertical = a.getDimensionPixelSize(R.styleable.WeekViewNew_eventMarginVertical, mEventMarginVertical);
             mXScrollingSpeed = a.getFloat(R.styleable.WeekViewNew_xScrollingSpeed, mXScrollingSpeed);
@@ -1356,7 +1351,7 @@ public class WeekView extends View {
                 @Override
                 public String interpretDate(Calendar date) {
                     try {
-                        SimpleDateFormat sdf = mDayNameLength == LENGTH_SHORT ? new SimpleDateFormat("EEEEE M/dd", Locale.getDefault()) : new SimpleDateFormat("EEE M/dd", Locale.getDefault());
+                        SimpleDateFormat sdf = new SimpleDateFormat("EEE M/dd", Locale.getDefault());
                         return sdf.format(date.getTime()).toUpperCase();
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -1612,35 +1607,6 @@ public class WeekView extends View {
     public void setDefaultEventColor(int defaultEventColor) {
         mDefaultEventColor = defaultEventColor;
         invalidate();
-    }
-
-    /**
-     * <b>Note:</b> Use {@link #setDateTimeInterpreter(DateTimeInterpreter)} and
-     * {@link #getDateTimeInterpreter()} instead.
-     *
-     * @return Either long or short day name is being used.
-     */
-    @Deprecated
-    public int getDayNameLength() {
-        return mDayNameLength;
-    }
-
-    /**
-     * Set the length of the day name displayed in the header row. Example of short day names is
-     * 'M' for 'Monday' and example of long day names is 'Mon' for 'Monday'.
-     * <p>
-     * <b>Note:</b> Use {@link #setDateTimeInterpreter(DateTimeInterpreter)} instead.
-     * </p>
-     *
-     * @param length Supported values are {@link com.alamkanak.weekview.WeekView#LENGTH_SHORT} and
-     *               {@link com.alamkanak.weekview.WeekView#LENGTH_LONG}.
-     */
-    @Deprecated
-    public void setDayNameLength(int length) {
-        if (length != LENGTH_LONG && length != LENGTH_SHORT) {
-            throw new IllegalArgumentException("length parameter must be either LENGTH_LONG or LENGTH_SHORT");
-        }
-        this.mDayNameLength = length;
     }
 
     public int getOverlappingEventGap() {
@@ -1941,7 +1907,7 @@ public class WeekView extends View {
             mScroller.forceFinished(true);
             // Snap to date.
             mScroller.startScroll((int) mCurrentOrigin.x, (int) mCurrentOrigin.y, -nearestOrigin, 0, (int) (Math.abs(nearestOrigin) / mWidthPerDay * mScrollDuration));
-            ViewCompat.postInvalidateOnAnimation(WeekView.this);
+            ViewCompat.postInvalidateOnAnimation(WeekViewDay.this);
         }
         // Reset scrolling and fling direction.
         mCurrentScrollDirection = mCurrentFlingDirection = Direction.NONE;
@@ -2092,7 +2058,7 @@ public class WeekView extends View {
 
     public interface EventLongPressListener {
         /**
-         * Similar to {@link com.alamkanak.weekview.WeekView.EventClickListener} but with a long press.
+         * Similar to {@link com.alamkanak.weekview.WeekViewDay.EventClickListener} but with a long press.
          *
          * @param event:     event clicked.
          * @param eventRect: view containing the clicked event.
@@ -2111,7 +2077,7 @@ public class WeekView extends View {
 
     public interface EmptyViewLongPressListener {
         /**
-         * Similar to {@link com.alamkanak.weekview.WeekView.EmptyViewClickListener} but with long press.
+         * Similar to {@link com.alamkanak.weekview.WeekViewDay.EmptyViewClickListener} but with long press.
          *
          * @param time: {@link Calendar} object set with the date and time of the long pressed position on the view.
          */

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:descendantFocusability="blocksDescendants">
+
+    <android.support.v7.widget.AppCompatRadioButton
+        android:id="@+id/album_media_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="false"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="9dp"
+        app:theme="@style/AppTheme" />
+
+    <com.zhihu.matisse.internal.ui.widget.RoundedRectangleImageView
+        android:id="@+id/album_cover"
+        android:layout_width="95dp"
+        android:layout_height="95dp"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="13dp"
+        android:layout_marginRight="13dp"
+        android:layout_marginTop="13dp" />
+
+    <TextView
+        android:id="@+id/album_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@id/album_cover"
+        android:layout_centerVertical="true"
+        android:layout_toRightOf="@id/album_cover"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="?attr/album.dropdown.title.color"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/album_media_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@id/album_name"
+        android:layout_below="@id/album_name"
+        android:layout_marginTop="4dp"
+        android:layout_toRightOf="@id/album_cover"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="?album.dropdown.count.color"
+        android:textSize="14sp"
+        android:visibility="invisible" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@id/album_cover"
+        android:layout_marginLeft="13dp"
+        android:layout_marginRight="13dp"
+        android:layout_marginTop="4dp"
+        android:background="#F0F4F6" />
+
+</RelativeLayout>

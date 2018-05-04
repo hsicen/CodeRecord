@@ -1,1 +1,1 @@
-include ':app', ':androidmvp', ':camerademo','swipeback','library','permission','daycalendar','camera'
+include ':app', ':androidmvp', ':camerademo', ':calendardemo','swipeback','library','permission','daycalendar','camera','matisse'

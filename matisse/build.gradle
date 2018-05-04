@@ -1,0 +1,32 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion rootProject.ext.android.compileSdkVersion
+
+    defaultConfig {
+        minSdkVersion rootProject.ext.android.minSdkVersion
+        targetSdkVersion rootProject.ext.android.targetSdkVersion
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    implementation dependenceExtra.v4
+    implementation dependenceExtra.appCompat
+    implementation dependenceExtra.cardView
+    implementation dependenceExtra.supportAnnotation
+    implementation dependenceExtra.recyclerView
+    compileOnly dependenceExtra.glide
+
+    implementation 'it.sephiroth.android.library.imagezoom:library:1.0.4'
+    compileOnly 'com.squareup.picasso:picasso:2.5.2'
+}

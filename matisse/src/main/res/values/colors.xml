@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+
+    <color name="preview_bottom_toolbar_bg">#CC000000</color>
+    <color name="preview_bottom_size">#61FFFFFF</color>
+
+    <color name="colorPrimary">#EEEEEE</color>
+    <color name="colorPrimaryDark">#C5C5C5</color>
+    <color name="colorAccent">#00cd66</color>
+
+    <color name="colorDarkGreen">#1CA05E</color>
+    <color name="colorUnCheck">#66000000</color>
+
+</resources>
