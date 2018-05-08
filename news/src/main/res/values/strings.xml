@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">News</string>
+    <string name="title_item_detail">Item Detail</string>
+
+    <string name="news">新闻</string>
+    <string name="movie">电影</string>
+    <string name="joke">段子</string>
+
+</resources>

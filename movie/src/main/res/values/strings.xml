@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">电影指南</string>
+    <string name="title_item_detail">电影详情</string>
+
+    <string name="movieList">电影列表页</string>
+    <string name="movieDetail">电影详情页</string>
+
+    <string name="date">日期: %1$s</string>
+    <string name="star">评分: %1$.1f</string>
+</resources>
