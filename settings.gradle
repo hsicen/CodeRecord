@@ -1,1 +1,1 @@
-include ':app', ':androidmvp', ':camerademo', ':calendardemo', ':kotlintest', ':kotlindate','swipeback','library','permission','daycalendar','camera','matisse','movie','news'
+include ':app', ':androidmvp', ':camerademo', ':calendardemo', ':kotlintest', ':kotlindate', ':kotlinprettyimage','swipeback','library','permission','daycalendar','camera','matisse','movie','news'

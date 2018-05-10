@@ -1,4 +1,4 @@
-package com.toucheart.library.widget
+package com.hsc.vince.kotlinprettyimage
 
 import android.content.Context
 import android.graphics.*
@@ -8,13 +8,12 @@ import android.os.Bundle
 import android.os.Parcelable
 import android.util.AttributeSet
 import android.widget.ImageView
-import com.toucheart.library.R
 
 /**
- * <p>作者：黄思程  2018/5/9 16:29
- * <p>邮箱：huangsicheng@gouuse.cn
- * <p>作用：
- * <p>描述：自定义图片控件
+ * Author ：NightYoung  2018/5/10 10:52
+ * Email    ：codinghuang@163.com
+ * Func     ：
+ * Desc     ：ImageView with circle or round shape
  */
 class PrettyImageView @JvmOverloads constructor(
         context: Context, attributeSet: AttributeSet? = null, defAttrStyle: Int = 0) :
@@ -109,7 +108,13 @@ class PrettyImageView @JvmOverloads constructor(
             invalidate()
         }
 
-    private var mCircleDotRadius: Float = 20f
+    private var mCircleDotRadius: Float = 100f
+        set(value) {
+            field = value
+            invalidate()
+        }
+
+    private var mCircleDotPosition: Int = 0
         set(value) {
             field = value
             invalidate()
@@ -179,6 +184,8 @@ class PrettyImageView @JvmOverloads constructor(
                             mCircleDotColor = array.getColor(it, mCircleDotColor)
                         R.styleable.PrettyImageView_circle_dot_radius ->
                             mCircleDotRadius = array.getDimension(it, dp2px(context, 5f))
+                        R.styleable.PrettyImageView_circle_dot_position ->
+                            mCircleDotPosition = array.getInt(it, mCircleDotPosition)
                     }
                 }
 
@@ -206,7 +213,7 @@ class PrettyImageView @JvmOverloads constructor(
         mShapePath = Path()
         mBorderPath = Path()
         mMatrix = Matrix()
-        scaleType = ScaleType.CENTER_CROP
+        scaleType = ScaleType.CENTER_INSIDE
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -215,6 +222,7 @@ class PrettyImageView @JvmOverloads constructor(
         if (mShapeType == ShapeType.SHAPE_CIRCLE) {
             mWidth = Math.min(measuredWidth, measuredHeight)
             mRadius = mWidth / 2.0f
+            mWidth = (mWidth + mCircleDotRadius * 2).toInt()
             setMeasuredDimension(mWidth, mWidth)
         } else {
             mWidth = measuredWidth
@@ -267,8 +275,9 @@ class PrettyImageView @JvmOverloads constructor(
 
     private fun drawCircleDot(canvas: Canvas?) {
         canvas?.run {
-            drawCircle((mRadius + mRadius * (Math.sqrt(2.0) / 2.0f)).toFloat(),
-                    (mRadius - mRadius * (Math.sqrt(2.0) / 2.0f)).toFloat(), mCircleDotRadius, mCircleDotPaint)
+            val x = mRadius + mCircleDotRadius + mRadius * Math.sin(mCircleDotPosition * 1.0)
+            val y = mRadius + mCircleDotRadius - mRadius * Math.cos(mCircleDotPosition * 1.0)
+            drawCircle(x.toFloat(), y.toFloat(), mCircleDotRadius, mCircleDotPaint)
         }
     }
 
@@ -302,11 +311,14 @@ class PrettyImageView @JvmOverloads constructor(
     }
 
     private fun buildCirclePath() {
+        val x = mRadius + mCircleDotRadius
+        val y = mRadius + mCircleDotRadius
+
         if (!mShowBorder) {
-            mShapePath.addCircle(mRadius, mRadius, mRadius, Path.Direction.CW)
+            mShapePath.addCircle(x, y, mRadius, Path.Direction.CW)
         } else {
-            mShapePath.addCircle(mRadius, mRadius, mRadius - mBorderWidth, Path.Direction.CW)
-            mBorderPath.addCircle(mRadius, mRadius, mRadius - mBorderWidth / 2.0f, Path.Direction.CW)
+            mShapePath.addCircle(x, y, mRadius, Path.Direction.CW)
+            mBorderPath.addCircle(x, y, mRadius + mBorderWidth / 2.0f, Path.Direction.CW)
         }
     }
 
