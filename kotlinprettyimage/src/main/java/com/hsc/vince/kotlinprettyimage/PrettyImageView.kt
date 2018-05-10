@@ -24,49 +24,49 @@ class PrettyImageView @JvmOverloads constructor(
         SHAPE_ROUND
     }
 
-    private var mShapeType: ShapeType = ShapeType.SHAPE_CIRCLE
+    var mShapeType: ShapeType = ShapeType.SHAPE_CIRCLE
         set(value) {
             field = value
             invalidate()
         }
 
-    private var mBorderWidth: Float = 20f
+    var mBorderWidth: Float = 20f
         set(value) {
             field = value
             invalidate()
         }
 
-    private var mBorderColor: Int = Color.parseColor("#ff8237")
+    var mBorderColor: Int = Color.parseColor("#ff8237")
         set(value) {
             field = value
             invalidate()
         }
 
-    private var mLeftTopRadiusX: Float = 0f
+    var mLeftTopRadiusX: Float = 0f
         set(value) {
             field = value
             invalidate()
         }
 
-    private var mLeftTopRadiusY: Float = 0f
+    var mLeftTopRadiusY: Float = 0f
         set(value) {
             field = value
             invalidate()
         }
 
-    private var mLeftBottomRadiusX: Float = 0f
+    var mLeftBottomRadiusX: Float = 0f
         set(value) {
             field = value
             invalidate()
         }
 
-    private var mLeftBottomRadiusY: Float = 0f
+    var mLeftBottomRadiusY: Float = 0f
         set(value) {
             field = value
             invalidate()
         }
 
-    private var mRightTopRadiusX: Float = 0f
+    var mRightTopRadiusX: Float = 0f
         set(value) {
             field = value
             invalidate()
@@ -78,43 +78,43 @@ class PrettyImageView @JvmOverloads constructor(
             invalidate()
         }
 
-    private var mRightBottomRadiusX: Float = 0f
+    var mRightBottomRadiusX: Float = 0f
         set(value) {
             field = value
             invalidate()
         }
 
-    private var mRightBottomRadiusY: Float = 0f
+    var mRightBottomRadiusY: Float = 0f
         set(value) {
             field = value
             invalidate()
         }
 
-    private var mShowBorder: Boolean = true
+    var mShowBorder: Boolean = true
         set(value) {
             field = value
             invalidate()
         }
 
-    private var mShowCircleDot: Boolean = false
+    var mShowCircleDot: Boolean = false
         set(value) {
             field = value
             invalidate()
         }
 
-    private var mCircleDotColor: Int = Color.parseColor("#00cd66")
+    var mCircleDotColor: Int = Color.parseColor("#00cd66")
         set(value) {
             field = value
             invalidate()
         }
 
-    private var mCircleDotRadius: Float = 100f
+    var mCircleDotRadius: Float = 100f
         set(value) {
             field = value
             invalidate()
         }
 
-    private var mCircleDotPosition: Int = 0
+    var mCircleDotPosition: Int = 0
         set(value) {
             field = value
             invalidate()
@@ -433,7 +433,7 @@ class PrettyImageView @JvmOverloads constructor(
      * @param spValue sp value
      * @return sp value to px value
      */
-    fun sp2px(context: Context, spValue: Float): Float {
+    private fun sp2px(context: Context, spValue: Float): Float {
         val fontScale = context.resources.displayMetrics.scaledDensity
         return (spValue * fontScale + 0.5f)
     }

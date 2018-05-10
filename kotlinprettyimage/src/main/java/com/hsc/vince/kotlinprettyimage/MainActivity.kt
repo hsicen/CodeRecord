@@ -1,6 +1,7 @@
 package com.hsc.vince.kotlinprettyimage
 
 import android.content.Context
+import android.graphics.Color
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.widget.ImageView
@@ -21,6 +22,18 @@ class MainActivity : AppCompatActivity() {
         btn_add_image.setOnClickListener {
             loadImage()
         }
+
+        btn_change_color.setOnClickListener {
+            changeColor()
+        }
+    }
+
+    private fun changeColor() {
+        iv_pretty_one.mBorderColor = Color.RED
+        iv_pretty_one.mShowCircleDot = false
+
+        iv_pretty_two.mCircleDotPosition = 180
+        iv_pretty_two.mShowBorder = false
     }
 
     private fun loadImage() {
