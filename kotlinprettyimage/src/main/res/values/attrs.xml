@@ -24,7 +24,6 @@
         <attr name="show_circle_dot" format="boolean" />
         <attr name="circle_dot_color" format="color" />
         <attr name="circle_dot_radius" format="dimension" />
-        <!--  position the circle,  range:0~2π,  top is the origin position with the clockwise direction-->
         <attr name="circle_dot_position" format="integer" />
 
     </declare-styleable>

@@ -275,8 +275,9 @@ class PrettyImageView @JvmOverloads constructor(
 
     private fun drawCircleDot(canvas: Canvas?) {
         canvas?.run {
-            val x = mRadius + mCircleDotRadius + mRadius * Math.sin(mCircleDotPosition * 1.0)
-            val y = mRadius + mCircleDotRadius - mRadius * Math.cos(mCircleDotPosition * 1.0)
+            canvas.translate(mRadius + mCircleDotRadius, mRadius + mCircleDotRadius)
+            val x = mRadius * Math.sin(Math.PI * mCircleDotPosition / 180)
+            val y = mRadius * Math.cos(Math.PI * mCircleDotPosition / 180)
             drawCircle(x.toFloat(), y.toFloat(), mCircleDotRadius, mCircleDotPaint)
         }
     }

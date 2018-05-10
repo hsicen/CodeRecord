@@ -25,6 +25,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadImage() {
         iv_pretty_one.loadImage(this, imageUrl3)
+        iv_pretty_two.loadImage(this, imageUrl2)
     }
 
     /*** add a property for imageView*/
