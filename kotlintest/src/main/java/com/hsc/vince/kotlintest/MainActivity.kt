@@ -32,13 +32,6 @@ class MainActivity : AppCompatActivity() {
         val hello = "黄思程"
         Log.d("lastChar", "last: " + hello.lastChar())
 
-        //1天前
-        val ago = 1.days.ago
-        Log.d("date", "时间: " + ago.toString())
-        //2天后
-        val after = 2.days.after
-        Log.d("date", "时间: " + after.toString())
-
         //lambda表达式
         val sum = { x: Int, y: Int -> x + y }
         printSum(sum)

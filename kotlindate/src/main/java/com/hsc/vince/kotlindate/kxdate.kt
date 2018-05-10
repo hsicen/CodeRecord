@@ -1,4 +1,4 @@
-package com.hsc.vince.kotlintest
+package com.hsc.vince.kotlindate
 
 import java.time.Duration
 import java.time.LocalDate
@@ -9,7 +9,7 @@ import java.time.Period
  * <p>作者：黄思程  2018/5/9 11:23
  * <p>邮箱：huangsicheng@gouuse.cn
  * <p>作用：
- * <p>描述：扩展的使用     时间工具类    需要Api26
+ * <p>描述：扩展的使用     时间工具类
  */
 
 /*** 之前*/
