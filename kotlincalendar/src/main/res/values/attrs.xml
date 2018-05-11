@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 00:00 ~ 23:59 WeekView-->
+    <declare-styleable name="TimeWeekView">
+        <attr name="first_dayOfWeek" format="enum">
+            <enum name="sunday" value="1" />
+            <enum name="monday" value="2" />
+            <enum name="tuesday" value="3" />
+            <enum name="wednesday" value="4" />
+            <enum name="thursday" value="5" />
+            <enum name="friday" value="6" />
+            <enum name="saturday" value="7" />
+        </attr>
+
+        <attr name="hour_height" format="dimension" />
+        <attr name="hour_maxHeight" format="dimension" />
+        <attr name="hour_minHeight" format="dimension" />
+        <attr name="hour_separatorColor" format="color" />
+        <attr name="hour_separatorHeight" format="dimension" />
+
+        <attr name="head_dateWeekTextSize" format="dimension" />
+        <attr name="head_dateWeekTextTopColor" format="color" />
+        <attr name="head_dateWeekTextBottomCOlor" format="color" />
+        <attr name="head_dateDayTextSize" format="dimension" />
+        <attr name="head_dateDayTextColor" format="color" />
+        <attr name="head_dateBackground" format="color" />
+
+        <attr name="head_timeTextSize" format="dimension" />
+        <attr name="head_timeTextColor" format="color" />
+
+
+        <attr name="head_freeText" format="string" />
+        <attr name="head_freeTextSize" format="dimension" />
+        <attr name="head_freeTextColor" format="color" />
+        <attr name="head_freeCircleRadius" format="dimension" />
+        <attr name="head_freeCircleColor" format="color" />
+
+        <attr name="head_allDayText" format="string" />
+        <attr name="head_allDayTextColor" format="color" />
+        <attr name="head_allDayTextSize" format="dimension" />
+        <attr name="head_allDayEventTextSize" format="dimension" />
+        <attr name="head_allDayEventTextColor" format="color" />
+        <attr name="head_allDayEventHeight" format="dimension" />
+
+        <attr name="head_rowPadding" format="dimension" />
+        <attr name="head_rowBackground" format="color" />
+        <attr name="head_colPading" format="dimension" />
+        <attr name="head_colBackground" format="color" />
+
+        <attr name="event_textSize" format="dimension" />
+        <attr name="event_textColor" format="color" />
+        <attr name="event_padding" format="dimension" />
+        <attr name="event_marginVertical" format="dimension" />
+        <attr name="event_cornerRadius" format="dimension" />
+        <attr name="event_overlappingGap" format="dimension" />
+        <attr name="column_gap" format="dimension" />
+
+        <attr name="today_headTextColor" format="color" />
+        <attr name="today_background" format="color" />
+        <attr name="day_background" format="color" />
+
+        <attr name="show_pastFutureColor" format="boolean" />
+        <attr name="future_color" format="color" />
+        <attr name="past_color" format="color" />
+
+        <attr name="show_nowLine" format="boolean" />
+        <attr name="now_lineColor" format="color" />
+        <attr name="now_lineThickness" format="dimension" />
+
+        <attr name="visible_days" format="integer" />
+        <attr name="show_weekend" format="boolean" />
+        <attr name="show_firstDayOfWeekFirst" format="boolean" />
+
+        <attr name="scroll_duration" format="integer" />
+        <attr name="xScroll_speed" format="float" />
+        <attr name="yScroll_speed" format="float" />
+        <attr name="horizontal_flingEnable" format="boolean" />
+        <attr name="vertical_flingEnable" format="boolean" />
+        <attr name="horizontal_scrollEnable" format="boolean" />
+        <attr name="vertical_scrollEnable" format="boolean" />
+    </declare-styleable>
+
+</resources>
