@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="solarTextColor">#282c37</color>
+    <color name="lunarTextColor">#8899a9</color>
+    <color name="hintColor">#8899a9</color>
+    <color name="selectCircleColor">#00cd66</color>
+    <color name="holidayColor">#ff9900</color>
+    <color name="workdayColor">#EC7230</color>
+    <color name="pointColor">#ff9900</color>
+    <color name="white">#ffffff</color>
+    <color name="lightGreen">#9ee7c1</color>
+    <color name="workDay">#20a6fd</color>
+
+</resources>

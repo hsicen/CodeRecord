@@ -20,7 +20,7 @@
 
         <attr name="head_dateWeekTextSize" format="dimension" />
         <attr name="head_dateWeekTextTopColor" format="color" />
-        <attr name="head_dateWeekTextBottomCOlor" format="color" />
+        <attr name="head_dateWeekTextBottomColor" format="color" />
         <attr name="head_dateDayTextSize" format="dimension" />
         <attr name="head_dateDayTextColor" format="color" />
         <attr name="head_dateBackground" format="color" />

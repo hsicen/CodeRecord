@@ -17,7 +17,6 @@ android {
     }
 }
 
-ext.supportLibVersion = '25.3.1'
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation dependenceExtra.v4
