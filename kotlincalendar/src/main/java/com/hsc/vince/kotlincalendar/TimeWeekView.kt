@@ -28,7 +28,7 @@ class TimeWeekView @JvmOverloads constructor(
     private val mContext: Context = context
 
     //first day of week
-    private var mFirstDayOfWeek: Int = Calendar.MONDAY
+    private var mFirstDayOfWeek = Calendar.MONDAY
     private var mVisibleDays = 7
     private var mShowWeekend = true
     private var mShowFirstDayOfWeekFirst = true
