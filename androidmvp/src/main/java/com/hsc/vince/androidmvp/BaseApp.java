@@ -3,6 +3,7 @@ package com.hsc.vince.androidmvp;
 import android.app.Application;
 
 import com.toucheart.library.util.ContextUtil;
+import com.toucheart.library.util.LogUtils;
 
 /**
  * <p>作者：黄思程  2018/4/10 15:45
@@ -18,5 +19,6 @@ public class BaseApp extends Application {
 
         //初始化Logger
         ContextUtil.init(this);
+        LogUtils.init(true);
     }
 }

@@ -12,7 +12,7 @@ import android.view.View
 abstract class MvpFragment<P : BasePresenter<*>> : BaseFragment() {
     protected lateinit var mvpPresenter: P
 
-    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         mvpPresenter = createPresenter()
 
         super.onViewCreated(view, savedInstanceState)
