@@ -40,7 +40,7 @@ dependencies {
     implementation dependenceExtra.logger
     implementation dependenceExtra.jodaTime
 
-    implementation dependenceExtra.rxJava
+    implementation dependenceExtra.retrofitAdapter
     implementation dependenceExtra.rxAndroid
 
     implementation dependenceExtra.gson

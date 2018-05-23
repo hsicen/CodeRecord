@@ -1,4 +1,4 @@
-include ':app', ':androidmvp', ':camerademo', ':calendardemo', ':constraintlayouttest',
+include ':camerademo', ':calendardemo', ':constraintlayouttest',
         ':kotlintest', ':kotlindate', ':kotlinprettyimage', ':kotlincalendar',
         'swipeback', 'library', 'permission', 'daycalendar', 'camera',
-        'matisse', 'movie', 'news','ncalendar'
+        'matisse', 'kotlinmovie', 'ncalendar'
