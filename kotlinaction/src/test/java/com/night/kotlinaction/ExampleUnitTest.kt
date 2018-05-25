@@ -1,4 +1,4 @@
-package com.hsc.vince.kotlintest
+package com.night.kotlinaction
 
 import org.junit.Test
 
