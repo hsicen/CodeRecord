@@ -3,6 +3,8 @@ package com.night.kotlinaction
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import com.night.kotlinaction.chapter2.*
+import com.night.kotlinaction.chapter4.Secretive2
+import com.night.kotlinaction.chapter4.User
 import java.lang.Exception
 import java.util.*
 
@@ -59,6 +61,10 @@ class MainActivity : AppCompatActivity() {
 
         println("12.345-6.A".split("\\. | -".toRegex()))
         println("12.345-6.A".split(".", "-"))
+
+        val user = User(isSubscribed = false, _nickName = "Alice")
+
+        val secretive2 = Secretive2("Mike", 12)
     }
 
     private fun testBase() {
