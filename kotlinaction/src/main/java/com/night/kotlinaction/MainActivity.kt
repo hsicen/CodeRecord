@@ -65,6 +65,14 @@ class MainActivity : AppCompatActivity() {
         val user = User(isSubscribed = false, _nickName = "Alice")
 
         val secretive2 = Secretive2("Mike", 12)
+
+
+        val maxNum = { x: Int, y: Int -> x + y }
+        println("sum ${maxNum(2, 3)}")
+
+        val naturalNum = generateSequence(0) { it + 1 }
+        val oneTo100 = naturalNum.takeWhile { it <= 100 }
+        val sum = oneTo100.sum()
     }
 
     private fun testBase() {
@@ -100,4 +108,6 @@ class MainActivity : AppCompatActivity() {
 
         else -> "  $i"
     }
+
+
 }

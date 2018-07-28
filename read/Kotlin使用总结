@@ -52,7 +52,7 @@
 7.	Kotlin中的操作符
 	val dataList = listOf(0,1,2,3,4,5,6,7,8,9)
 
-	(1)	filter	筛选符合要求的元素
+	(1)	filter	筛选符合要求的元素(不会改变这些元素)
 		dataList.filter{ it>0 }
 	(2)	let		默认当前对象作为闭包的it参数，返回值为函数里最后一行，或者指定的return
 		"testLet".let { printlin( it )	printlin( it )
@@ -79,7 +79,7 @@
 	(10)groupingBy	分组统计
 		val words = listOf("one","two","three","four","five","six","seven","eight","nine","ten")
 		words.groupingBy{ it.first() }.eachCount()  //统计第一个字母并分组
-	(11)map	类型转换
+	(11)map	使用给定的函数处理元素，得到新的集合
 	(12)flatMap	
 	(13)repeat	重复做某件事	repeat(10) { printlin(it) }
 	(14)to 	可用于map的创建 a to b
@@ -160,3 +160,28 @@
 15.when表达式
   (1).setOf()函数与when表达式的结合使用
   (2).when作为表达式直接返回
+
+16.集合的 peoples
+                 .maxBy()
+                 .all()   是否所有的元素都满足条件
+                 .any() 至少一个元素匹配条件
+                 .count() 匹配条件元素的个数
+                 .find() 找到第一个匹配条件的元素
+                 .firstOrNull()
+                 .group() 按照给定条件进行分组，结果为一个map
+
+                 .filter() 筛选，返回满足条件的元素集合
+                 .map() 变换，把集合元素按照给定函数进行变换，返回新的集合
+                 .flatMap() 处理嵌套集合，然后合并成一个集合
+                 .flatten() 处理嵌套集合，然后合并成一个集合，不做任何变换
+
+
+                 peoples.asSequence()   把集合转变成序列
+                 .map()     中间操作(惰性)
+                 .filter()
+                 .toList()   末端操作
+
+17.创建序列
+
+
+
