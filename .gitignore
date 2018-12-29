@@ -10,3 +10,13 @@
 .externalNativeBuild
 .idea/
 .sign/
+calendardemo/src/main/gen/
+camera/src/main/gen/
+camerademo/src/main/gen/
+daycalendar/src/main/gen/
+echarts/src/main/gen/
+kotlinprettyimage/src/main/gen/
+permission/src/main/gen/
+ncalendar/src/main/gen/
+matisse/src/main/gen/
+swipeback/src/main/gen/
