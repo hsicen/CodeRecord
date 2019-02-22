@@ -16,7 +16,7 @@ git是 个版本控制的 具，需要下载才能使 ，当然mac是 带就有�
  了解git
 工作区  暂存区  版本区
 
-常用命令： 33
+常用命令：
 1.	git init						：初始化仓库
 2.	git status					：查看状态
 3.	git add fileName				：添加单个文件
