@@ -1,4 +1,2 @@
-include ':camerademo', ':calendardemo', ':constraintlayouttest', ':kotlinaction', ':echarts', ':echartsdemo',
-        ':kotlindate', ':kotlinprettyimage', ':kotlincalendar',
-        'swipeback', 'library', 'permission', 'daycalendar', 'camera',
-        'matisse', 'kotlinmovie', 'ncalendar'
+include ':echarts', ':echartsdemo', 'swipeback', 'library', 'permission', 'camera',
+        'matisse', '', 'ncalendar'
