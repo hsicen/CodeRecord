@@ -21,7 +21,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.net.Uri;
 import android.provider.CallLog;
-import android.support.annotation.RequiresPermission;
+import androidx.annotation.RequiresPermission;
 
 import com.yanzhenjie.permission.Permission;
 

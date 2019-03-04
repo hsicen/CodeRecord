@@ -3,8 +3,8 @@ package com.toucheart.library.widget;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.support.annotation.Nullable;
-import android.support.v4.content.ContextCompat;
+import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import android.text.TextPaint;
 import android.text.TextUtils;
 import android.util.AttributeSet;
@@ -15,7 +15,7 @@ import android.util.AttributeSet;
  * 作用：
  * 描述：能够显示文字的ImageView
  */
-public class TextImageView extends android.support.v7.widget.AppCompatImageView {
+public class TextImageView extends androidx.appcompat.widget.AppCompatImageView {
     private TextPaint mPaint;
     private String text;
 

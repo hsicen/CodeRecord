@@ -3,7 +3,7 @@ package com.toucheart.library.span;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.text.style.ReplacementSpan;
 
 /**

@@ -23,7 +23,7 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.CalendarContract;
-import android.support.annotation.RequiresApi;
+import androidx.annotation.RequiresApi;
 
 import java.util.TimeZone;
 

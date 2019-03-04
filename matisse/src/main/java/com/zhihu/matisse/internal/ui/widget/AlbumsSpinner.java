@@ -2,8 +2,8 @@ package com.zhihu.matisse.internal.ui.widget;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.support.annotation.NonNull;
-import android.support.v7.widget.ListPopupWindow;
+import androidx.annotation.NonNull;
+import androidx.appcompat.widget.ListPopupWindow;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;

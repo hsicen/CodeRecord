@@ -16,7 +16,7 @@
 package com.zhihu.matisse.internal.ui;
 
 import android.os.Bundle;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.view.View;
 
 import com.zhihu.matisse.internal.entity.Item;

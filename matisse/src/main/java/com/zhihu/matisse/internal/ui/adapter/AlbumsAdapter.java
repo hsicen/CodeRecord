@@ -5,7 +5,7 @@ import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.support.v7.widget.AppCompatRadioButton;
+import androidx.appcompat.widget.AppCompatRadioButton;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;

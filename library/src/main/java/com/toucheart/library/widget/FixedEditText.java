@@ -13,7 +13,7 @@ import android.view.MotionEvent;
  * 作用：
  * 描述：可在左边显示固定提示的EditText
  */
-public class FixedEditText extends android.support.v7.widget.AppCompatEditText {
+public class FixedEditText extends androidx.appcompat.widget.AppCompatEditText {
 
     private String fixedText;
     private OnClickListener mListener;

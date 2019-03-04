@@ -16,8 +16,8 @@
 package com.yanzhenjie.permission;
 
 import android.os.Build;
-import android.support.annotation.NonNull;
-import android.support.annotation.RequiresApi;
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 
 import com.yanzhenjie.permission.checker.DoubleChecker;
 import com.yanzhenjie.permission.checker.PermissionChecker;

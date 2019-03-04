@@ -15,7 +15,7 @@
  */
 package com.yanzhenjie.permission;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 /**
  * <p>Permission request.</p>

@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:descendantFocusability="blocksDescendants">
 
-    <android.support.v7.widget.AppCompatRadioButton
+    <androidx.appcompat.widget.AppCompatRadioButton
         android:id="@+id/album_media_status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

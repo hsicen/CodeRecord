@@ -3,11 +3,12 @@ package com.cjt2325.cameralibrary;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.View;
 
 import com.cjt2325.cameralibrary.util.ScreenUtils;
+
+import androidx.annotation.Nullable;
 
 /**
  * =====================================

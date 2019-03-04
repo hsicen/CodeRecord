@@ -17,16 +17,16 @@ ext {
     ]
 
     //统一版本
-    supportLibrary = '27.1.1'
+    supportLibrary = '1.0.0-beta01'
     //第三方依赖库
     dependenceExtra = [
-            appCompat          : "com.android.support:appcompat-v7:${supportLibrary}",
-            v4                 : "com.android.support:support-v4:${supportLibrary}",
-            fragment           : "com.android.support:support-fragment:${supportLibrary}",
-            design             : "com.android.support:design:${supportLibrary}",
-            recyclerView       : "com.android.support:recyclerview-v7:${supportLibrary}",
-            cardView           : "com.android.support:cardview-v7:${supportLibrary}",
-            supportAnnotation  : "com.android.support:support-annotations:${supportLibrary}",
+            appCompat          : "androidx.appcompat:appcompat:${supportLibrary}",
+            v4                 : "androidx.legacy:legacy-support-v4:${supportLibrary}",
+            fragment           : "androidx.fragment:fragment:${supportLibrary}",
+            design             : "com.google.android.material:material:${supportLibrary}",
+            recyclerView       : "androidx.recyclerview:recyclerview:${supportLibrary}",
+            cardView           : "androidx.cardview:cardview:${supportLibrary}",
+            supportAnnotation  : "androidx.annotation:annotation:${supportLibrary}",
             constraintLayout   : 'com.android.support.constraint:constraint-layout:1.0.2',
 
             //这三个的版本号需要一致

@@ -18,8 +18,8 @@ package com.yanzhenjie.permission;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Build;
-import android.support.annotation.NonNull;
-import android.support.annotation.RequiresApi;
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 
 import com.yanzhenjie.permission.setting.PermissionSetting;
 import com.yanzhenjie.permission.source.AppActivitySource;
@@ -29,6 +29,8 @@ import com.yanzhenjie.permission.source.Source;
 import com.yanzhenjie.permission.source.SupportFragmentSource;
 
 import java.util.List;
+
+import androidx.fragment.app.Fragment;
 
 /**
  * <p>Request the entrance.</p>
@@ -62,12 +64,12 @@ public class AndPermission {
     /**
      * Some privileges permanently disabled, may need to set up in the execute.
      *
-     * @param fragment          {@link android.support.v4.app.Fragment}.
+     * @param fragment          {@link Fragment}.
      * @param deniedPermissions one or more permissions.
      * @return true, other wise is false.
      */
     public static boolean hasAlwaysDeniedPermission(
-            @NonNull android.support.v4.app.Fragment fragment,
+            @NonNull Fragment fragment,
             @NonNull List<String> deniedPermissions) {
         return hasAlwaysDeniedPermission(new SupportFragmentSource(fragment), deniedPermissions);
     }
@@ -128,12 +130,12 @@ public class AndPermission {
     /**
      * Some privileges permanently disabled, may need to set up in the execute.
      *
-     * @param fragment          {@link android.support.v4.app.Fragment}.
+     * @param fragment          {@link Fragment}.
      * @param deniedPermissions one or more permissions.
      * @return true, other wise is false.
      */
     public static boolean hasAlwaysDeniedPermission(
-            @NonNull android.support.v4.app.Fragment fragment,
+            @NonNull Fragment fragment,
             @NonNull String... deniedPermissions) {
         return hasAlwaysDeniedPermission(new SupportFragmentSource(fragment), deniedPermissions);
     }
@@ -192,11 +194,11 @@ public class AndPermission {
     /**
      * Create a service that opens the permission setting page.
      *
-     * @param fragment {@link android.support.v4.app.Fragment}.
+     * @param fragment {@link Fragment}.
      * @return {@link SettingService}.
      */
     @NonNull
-    public static SettingService permissionSetting(@NonNull android.support.v4.app.Fragment fragment) {
+    public static SettingService permissionSetting(@NonNull Fragment fragment) {
         return new PermissionSetting(new SupportFragmentSource(fragment));
     }
 
@@ -236,11 +238,11 @@ public class AndPermission {
     /**
      * With android.support.v4.app.Fragment.
      *
-     * @param fragment {@link android.support.v4.app.Fragment}.
+     * @param fragment {@link Fragment}.
      * @return {@link Request}.
      */
     @NonNull
-    public static Request with(@NonNull android.support.v4.app.Fragment fragment) {
+    public static Request with(@NonNull Fragment fragment) {
         return FACTORY.create(new SupportFragmentSource(fragment));
     }
 

@@ -11,7 +11,7 @@ import android.net.Uri;
 import android.os.Binder;
 import android.os.Environment;
 import android.os.IBinder;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.support.v4.util.LongSparseArray;
 import android.text.TextUtils;
 

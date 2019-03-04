@@ -20,7 +20,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.os.Build;
 import android.provider.Telephony;
-import android.support.annotation.RequiresApi;
+import androidx.annotation.RequiresApi;
 
 /**
  * Created by YanZhenjie on 2018/1/25.

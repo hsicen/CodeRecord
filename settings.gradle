@@ -1,2 +1,2 @@
-include ':echarts', ':echartsdemo', 'swipeback', 'library', 'permission', 'camera',
+include ':echarts', ':echartsdemo', ':firstcode', ':viewpager2demo', 'swipeback', 'library', 'permission', 'camera',
         'matisse', '', 'ncalendar'
