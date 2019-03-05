@@ -20,15 +20,14 @@ class TestInterceptor : IInterceptor {
     //在回调函数的onFound()后执行
     override fun process(postcard: Postcard?, callback: InterceptorCallback?) {
         //处理拦截事件
-        if ("/kotlin/activity".equals(postcard?.path)) {
+        if ("/kotlin/activity" == postcard?.path) {
 
             Log.d("TestInterceptor", "事件拦截")
+            callback?.onInterrupt(RuntimeException("有异常，终端路由"))
+        } else {
+            //处理完拦截事件, 交换控制权
+            callback?.onContinue(postcard)
         }
-
-
-        //处理完拦截事件, 交换控制权
-        //callback?.onContinue(postcard)
-        callback?.onInterrupt(RuntimeException("有异常，终端路由"))
     }
 
     override fun init(context: Context?) {

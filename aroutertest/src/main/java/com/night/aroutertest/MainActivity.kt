@@ -35,6 +35,9 @@ class MainActivity : AppCompatActivity() {
                         override fun onInterrupt(postcard: Postcard?) {
 
                             Log.d("Navigation", "被拦截")
+                            ARouter.getInstance()
+                                    .build("/kotlin/down")
+                                    .navigation()
                         }
 
                         override fun onArrival(postcard: Postcard?) {

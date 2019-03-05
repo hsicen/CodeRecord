@@ -12,6 +12,8 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
+
+        <activity android:name=".DownLevelActivity" />
         <activity android:name=".SchemeFilterActivity">
             <intent-filter>
                 <data
@@ -24,7 +26,6 @@
                 <category android:name="android.intent.category.BROWSABLE" />
             </intent-filter>
         </activity>
-
         <activity android:name=".Main2Activity" />
         <activity android:name=".MainActivity">
             <intent-filter>
