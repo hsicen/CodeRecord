@@ -15,8 +15,9 @@ class MainActivity : AppCompatActivity() {
         btn_jump.setOnClickListener {
 
             ARouter.getInstance()
-                    .build("/test/activity")
+                    .build("/kotlin/activity")
                     .withString("date", "Today")
+                    .withInt("day", 1)
                     .navigation()
         }
     }
