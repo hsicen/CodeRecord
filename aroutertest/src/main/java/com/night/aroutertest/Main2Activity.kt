@@ -29,13 +29,6 @@ class Main2Activity : AppCompatActivity() {
         ARouter.getInstance().inject(this)
 
         tv_receive.text = "I Received: $date, $day"
-
-        tv_receive.setOnClickListener {
-
-            ARouter.getInstance()
-                    .build("/kotlin/filter")
-                    .navigation()
-        }
     }
 
 
