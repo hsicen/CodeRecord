@@ -1,3 +1,3 @@
-include ':echarts', ':echartsdemo', ':code_book',
+include ':echarts', ':echartsdemo', ':code_book', ':constrain',
         ':aroutertest', 'swipeback', 'library', 'permission',
         'camera', 'matisse', '', 'ncalendar'
