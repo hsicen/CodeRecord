@@ -91,6 +91,7 @@
 
 
     <TextView
+        android:id="@+id/tv_banner"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_margin="16dp"
@@ -138,8 +139,33 @@
         app:layout_constraintRight_toRightOf="parent"/>
 
     <TextView
-        android:background=""
-        android:layout_width="40dp"
-        android:layout_height="40dp"/>
+        android:id="@+id/tv_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/shape_head_status"
+        android:padding="5dp"
+        app:layout_constraintCircle="@id/tv_float"
+        app:layout_constraintCircleAngle="145"
+        app:layout_constraintCircleRadius="18dp"/>
+
+    <TextView
+        android:id="@+id/tv_float"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_margin="16dp"
+        android:background="@drawable/shape_round"
+        android:elevation="5dp"
+        android:gravity="center"
+        android:text="头像"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_banner"/>
+
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/barrier"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="right"
+        app:constraint_referenced_ids="tv_float,tv_status"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
